@@ -43,6 +43,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           # AWS Region, e.g. us-east-2
           aws-region: eu-central-1
-      - run: sam build --template ./template.yaml --build-dir .aws-sam/build --use-container
-      - run: sam package --template-file .aws-sam/build/template.yaml --output-template-file .aws-sam/build/packaged-template.yaml --s3-bucket hackatums3
-      - run: sam deploy --template-file .aws-sam/build/packaged-template.yaml --stack-name hackatum --s3-bucket hackatums3 --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
+      - run: sam build --template aws/lambda_function/template.yaml --build-dir aws/lambda_function/aws-sam/build --use-container
+      - run: sam package --template-file aws/lambda_function/aws-sam/build/template.yaml --output-template-file aws/lambda_function/aws-sam/build/packaged-template.yaml --s3-bucket hackatums3
+      - run: sam deploy --template-file aws/lambda_function/aws-sam/build/packaged-template.yaml --stack-name hackatum --s3-bucket hackatums3 --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
