@@ -1,0 +1,39 @@
+{
+  "configurations": [
+    {
+      "type": "aws-sam",
+      "request": "direct-invoke",
+      "name": "matchmaking_server:HelloWorldFunction (python3.9)",
+      "invokeTarget": {
+        "target": "template",
+        "templatePath": "${workspaceFolder}/matchmaking_server/template.yaml",
+        "logicalId": "HelloWorldFunction"
+      },
+      "lambda": {
+        "payload": {},
+        "environmentVariables": {},
+        "runtime": "python3.9"
+      }
+    },
+    {
+      "type": "aws-sam",
+      "request": "direct-invoke",
+      "name": "API matchmaking_server:HelloWorldFunction (python3.9)",
+      "invokeTarget": {
+        "target": "api",
+        "templatePath": "${workspaceFolder}/matchmaking_server/template.yaml",
+        "logicalId": "HelloWorldFunction"
+      },
+      "api": {
+        "path": "/hello",
+        "httpMethod": "get",
+        "payload": {
+          "json": {}
+        }
+      },
+      "lambda": {
+        "runtime": "python3.9"
+      }
+    }
+  ]
+}

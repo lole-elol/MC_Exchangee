@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  matchmaking_server
+
+  Sample SAM Template for matchmaking_server
+
+Resources:
+  BloombergBackend:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: main/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      MemorySize: 512
+      Timeout: 30
+      ReservedConcurrentExecutions: 5
+      EventInvokeConfig:
+        MaximumEventAgeInSeconds: 21600
+        MaximumRetryAttempts: 0
+      Architectures:
+        - x86_64
