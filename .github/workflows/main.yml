@@ -1,0 +1,48 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  push:
+  # Triggers the workflow on push or pull request events but only for the master branch
+    paths:
+        - aws/lambda_function/**
+
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+      - name: Setup Python
+        uses: actions/setup-python@v3.1.2
+        with:
+          python-version: "3.9"
+      - name: Setup AWS SAM CLI
+        # You may pin to the exact commit or the version.
+        # uses: aws-actions/setup-sam@8cbdb0241613f319ffe1c1b9f9d8f54ce772b5d3
+        uses: aws-actions/setup-sam@v2
+      - name: AWS Credentials "Configure AWS Credentials" Action For GitHub Actions
+        # You may pin to the exact commit or the version.
+        # uses: aws-actions/configure-aws-credentials@05b148adc31e091bafbaf404f745055d4d3bc9d2
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          # AWS Access Key ID. This input is required if running in the GitHub hosted environment. It is optional if running in a self-hosted environment that already has AWS credentials, for example on an EC2 instance.
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          # AWS Secret Access Key. This input is required if running in the GitHub hosted environment. It is optional if running in a self-hosted environment that already has AWS credentials, for example on an EC2 instance.
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          # AWS Region, e.g. us-east-2
+          aws-region: eu-central-1
+      - run: sam build --template ./template.yaml --build-dir .aws-sam/build --use-container
+      - run: sam package --template-file .aws-sam/build/template.yaml --output-template-file .aws-sam/build/packaged-template.yaml --s3-bucket hackatums3
+      - run: sam deploy --template-file .aws-sam/build/packaged-template.yaml --stack-name hackatum --s3-bucket hackatums3 --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
