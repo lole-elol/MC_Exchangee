@@ -98,7 +98,12 @@ def lambda_handler(event, context):
 
     elif requestPath == "/balance":
         if event["httpMethod"] == "GET":
-            pass
+            user = event["body"]
+            if to_ret := get_user(user[""]):
+                return success(to_ret)
+            else:
+                return FAILURE
+                
 
     else:
         print("no viable path")
@@ -114,27 +119,53 @@ def lambda_handler(event, context):
 
 def balance():
     # claculate balance of users
-    usersUnbalanced = {}
+    newUserBalance = {}
     orders = get_unbalanced_and_matched_orders()
     for order in orders:
-        order["balanced"] = 1
-        if order['ownerID'] in usersUnbalanced:
+        update_order_balanced(order['orderID'],order['side']) # set for all orders "balanced" to 1
+        if order['ownerID'] in newUserBalance:
             if order["side"] == "buy":
-                usersUnbalanced[order['ownerID']] -= order['price'] * order['quantity']
+                newUserBalance[order['ownerID']] -= order['price'] * order['quantity']
             else:
-                usersUnbalanced[order['ownerID']] += order['price'] * order['quantity']
+                newUserBalance[order['ownerID']] += order['price'] * order['quantity']
         else:
             if order["side"] == "buy":
-                usersUnbalanced[order['ownerID']] = -order['price'] * order['quantity']
+                newUserBalance[order['ownerID']] = -order['price'] * order['quantity']
             else:
-                usersUnbalanced[order['ownerID']] = order['price'] * order['quantity']
-    
-    for user in usersUnbalanced:
+                newUserBalance[order['ownerID']] = order['price'] * order['quantity']
+        
+    for user in newUserBalance: # update all users
         currentUser = get_user(user['ownerID'])
-        update_user_balance(user['ownerID'],usersUnbalanced[order['ownerID']]+currentUser['balance'])
-
-    users = BALANCE.scan()["Items"]
+        update_user_balance(user['ownerID'],newUserBalance[user['ownerID']] + currentUser['balance'])
     
+
+def update_order_balanced(orderID,side):
+    TABLE.update_item(
+        Key={
+            'ownerID': orderID,
+            'side': side,
+        },
+        UpdateExpression="SET balanced = :b",
+        ConditionExpression="attribute_exists(orderID)",
+        ExpressionAttributeValues={
+            ':b': 1,
+        },
+        ReturnValues="NONE"
+    )
+
+
+def update_user_balance(ownerID,balance):
+    BALANCE.update_item(
+        Key={
+            'ownerID': ownerID,
+        },
+        UpdateExpression="SET balance = :b",
+        ConditionExpression="attribute_exists(ownerID)",
+        ExpressionAttributeValues={
+            ':b': balance,
+        },
+        ReturnValues="NONE"
+    )
 
 def write_to_order_book(order) -> None:
 
@@ -152,7 +183,7 @@ def get_all_user_orders(ownerID):
         return 0
 
 def get_user(primaryKey):
-    result = BALANCE.get_item(Key={'userID':primaryKey})
+    result = BALANCE.get_item(Key={'ownerID':primaryKey})
     if 'Item' in result:
         return result['Item']
     else:
