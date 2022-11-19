@@ -2,55 +2,96 @@ import json
 import boto3
 import os
 from boto3.dynamodb.conditions import Key
+import botocore
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "db.json")
 DB = boto3.resource("dynamodb", region_name="eu-central-1")
 TABLE = DB.Table("orders")
-# import requests
 
+# import requests
+# def matching(in_order):
+#     pass
+SUCCESS = {"statusCode": 200,
+        "body": json.dumps(
+            {
+                "message": "Success",
+            }
+        )}
+
+
+FAILURE_DEL = {"statusCode": 400,
+                "body": json.dumps(
+                    {
+                        "message": "Order cannot be deleted. It does not exist",
+                    }
+                )}
+
+FAILURE = {"statusCode": 400,
+                "body": json.dumps(
+                    {
+                        "message": "Order does not exist",
+                    }
+                )}
+
+
+
+def success(order):
+    return {"statusCode": 200, "body": json.dumps(order)}
+    
 
 def lambda_handler(event, context):
 
     if event["path"] == "Order":
         if event["httpMethod"] == "POST":
-            if event["body"]["action"] == "BUY":
-                pass
-            else:
-                # SELL
-                pass
+            if event["body"]["action"] == "buy" or event["body"]["action"] == "sell":
+                matching(event['body'])
+                return SUCCESS
+                 
 
         elif event["httpMethod"] == "DELETE":
-            if event["body"]["action"] == "BUY":
-                pass
+            # if event["body"]["action"] == "buy":
+            order = event["body"]
+            try:
+                delete_order(primaryKey=order['orderID'],sortKey=order['side'])
+            # Postponed
+            # except: 
+            #     return FAILURE_DEL
+            # else:
+                return SUCCESS
+            except botocore.exceptions.ClientError:
+                # if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
+                return FAILURE_DEL
+                
+                
+        elif event["httpMethod"] == "GET": # when order is return set collected field True
+            order = event["body"]
+            if to_ret := get_order(primaryKey=order['orderID']):
+                return success(to_ret)
             else:
-                # SELL
-                pass
-        elif event["httpMethod"] == "GET":
-            if event["body"]["action"] == "BUY":
-                pass
-            else:
-                # SELL
-                pass
+                return FAILURE
+        
 
-    elif event["path"] == "OrderList":
+    elif event["path"] == "OrderList":  # Order book of open orders filtzer by status
         if event["httpMethod"] == "GET":
-            if event["body"]["action"] == "BUY":
-                pass
+            if to_ret := get_all_unmatched_orders():
+                return success(to_ret)
             else:
-                # SELL
-                pass
+                return FAILURE
 
-    elif event["path"] == "Summary":
+    elif event["path"] == "Summary":  # Orderbook of user filzer by owner id
         if event["httpMethod"] == "GET":
-            if event["body"]["action"] == "BUY":
-                pass
+            if to_ret := get_all_user_orders(event['ownerID']):
+                return success(to_ret)
             else:
-                # SELL
-                pass
+                return FAILURE
+            
 
-    elif event["path"] == "Get":
+    elif event["path"] == "Poll":  # return Order filtered by user and collected
         if event["httpMethod"] == "GET":
-            pass
+            if to_ret := get_uncollected_user_orders(event['ownerID']):
+                return success(to_ret)
+            else:
+                return FAILURE
 
     elif event["path"] == "Balance":
         if event["httpMethod"] == "GET":
@@ -58,25 +99,64 @@ def lambda_handler(event, context):
 
     else:
         print("no viable path")
-
-    return {
-        "statusCode": 200,
-        "body": json.dumps(
-            {
-                "message": "hello world",
-                # "location": ip.text.replace("\n", "")
-            }
-        ),
-    }
+        return {
+            "statusCode": 200,
+            "body": json.dumps(
+                {
+                    "message": "hello world",
+                }
+            ),
+        }
 
 
 def write_to_order_book(order) -> None:
 
     TABLE.put_item(TableName="orders", Item=order)
 
+def get_all_user_orders(ownerID):
+    response = TABLE.query(
+        IndexName="ownerID-userCollected-index",
+        KeyConditionExpression=Key("ownerID").eq(ownerID),
+    )
+    if 'Items' in response:
+        return response['Items']
+    else:
+        return 0
 
-def edit_order(oprimary_key, order):
-    TABLE.update_item(TableName="orders", Key=oprimary_key, UpdateExpression=order)
+
+def get_uncollected_user_orders(ownerID):
+    response = TABLE.query(
+        IndexName="ownerID-userCollected-index",
+        KeyConditionExpression=Key("ownerID").eq(ownerID) & Key("userCollected").eq(0),
+    )
+    if 'Items' in response:
+        return response['Items']
+    else:
+        return 0
+
+# def edit_order(oprimary_key, order):
+#     TABLE.update_item(TableName="orders", Key=oprimary_key, UpdateExpression=order)
+
+def delete_order(primaryKey,sortKey):
+    TABLE.delete_item(TableName="orders", Key={'orderID':primaryKey,'side':sortKey}, ConditionExpression="attribute_exists(orderID)")
+
+def get_order(primaryKey):
+    result = TABLE.get_item(TableName="orders", Key={'orderID':primaryKey})
+    if 'Item' in result:
+        return result['Item']
+    else:
+        return 0
+
+def get_all_unmatched_orders():
+    response = TABLE.query(
+        IndexName="status-index	",
+        KeyConditionExpression=Key("status").eq(1),
+    )
+    if 'Items' in response:
+        return response['Items']
+    else:
+        return 0
+
 
 
 def matching(in_order):

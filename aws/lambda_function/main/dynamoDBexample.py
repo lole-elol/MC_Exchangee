@@ -116,6 +116,23 @@ def create_orders_table(dynamodb):
     return table
 
 
+def create_users_table(dynamodb):
+    table = dynamodb.create_table(
+        TableName="users",
+        KeySchema=[
+            {"AttributeName": "orderID", "KeyType": "HASH"},
+            {"AttributeName": "side", "KeyType": "RANGE"},
+        ],
+        AttributeDefinitions=[
+            {"AttributeName": "orderID", "AttributeType": "S"},
+            {"AttributeName": "side", "AttributeType": "S"},  # N = Number
+        ],
+        BillingMode="PAY_PER_REQUEST",
+    )
+    table.wait_until_exists()
+    return table
+
+
 def generateTestData():
     with table.batch_writer() as writer:
         for i in range(2000):
