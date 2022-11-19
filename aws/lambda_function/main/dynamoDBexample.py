@@ -4,7 +4,19 @@ import boto3 as boto3
 
 dynamodb = boto3.resource("dynamodb", region_name="eu-central-1")
 table = dynamodb.Table("orders")
-
+def create_users_table(dynamodb):
+    table = dynamodb.create_table(
+        TableName="users",
+        KeySchema=[
+            {"AttributeName": "ownerID", "KeyType": "HASH"}        ],
+        AttributeDefinitions=[
+            {"AttributeName": "ownerID", "AttributeType": "S"},
+        ],
+        BillingMode="PAY_PER_REQUEST",
+    )
+    table.wait_until_exists()
+#     return table
+# create_users_table(dynamodb)
 
 # def create_orders_table(dynamodb):
 #     table = dynamodb.create_table(
@@ -116,6 +128,8 @@ def create_orders_table(dynamodb):
     return table
 
 
+
+import uuid
 def generateTestData():
     with table.batch_writer() as writer:
         for i in range(2000):
@@ -134,6 +148,8 @@ def generateTestData():
                 "type": random.choice(["BUY", "SELL"]),
                 "quantity": random.choice(range(1, 100)),
                 "price": Decimal(str(random.uniform(10.5, 75.5))),
+                'balanced' : 0,
+                'collected' : 0
             }
             # print(order)
             writer.put_item(Item=order)
