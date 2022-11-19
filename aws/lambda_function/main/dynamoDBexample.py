@@ -4,7 +4,19 @@ import boto3 as boto3
 
 dynamodb = boto3.resource("dynamodb", region_name="eu-central-1")
 table = dynamodb.Table("orders")
-
+def create_users_table(dynamodb):
+    table = dynamodb.create_table(
+        TableName="users",
+        KeySchema=[
+            {"AttributeName": "userID", "KeyType": "HASH"}        ],
+        AttributeDefinitions=[
+            {"AttributeName": "userID", "AttributeType": "S"},
+        ],
+        BillingMode="PAY_PER_REQUEST",
+    )
+    table.wait_until_exists()
+    return table
+# create_users_table(dynamodb)
 
 # def create_orders_table(dynamodb):
 #     table = dynamodb.create_table(
@@ -116,21 +128,6 @@ def create_orders_table(dynamodb):
     return table
 
 
-def create_users_table(dynamodb):
-    table = dynamodb.create_table(
-        TableName="users",
-        KeySchema=[
-            {"AttributeName": "orderID", "KeyType": "HASH"},
-            {"AttributeName": "side", "KeyType": "RANGE"},
-        ],
-        AttributeDefinitions=[
-            {"AttributeName": "orderID", "AttributeType": "S"},
-            {"AttributeName": "side", "AttributeType": "S"},  # N = Number
-        ],
-        BillingMode="PAY_PER_REQUEST",
-    )
-    table.wait_until_exists()
-    return table
 
 
 def generateTestData():
