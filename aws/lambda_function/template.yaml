@@ -14,9 +14,5 @@ Resources:
       Runtime: python3.9
       MemorySize: 512
       Timeout: 30
-      ReservedConcurrentExecutions: 5
-      EventInvokeConfig:
-        MaximumEventAgeInSeconds: 21600
-        MaximumRetryAttempts: 0
       Architectures:
         - x86_64
