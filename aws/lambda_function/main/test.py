@@ -329,6 +329,72 @@ def test_matching_sell_qt_diff_buy_smaller_allFilled():
         "type": "wood",
         "quantity": "20",
         "price": "20",
+        "quantity": "10",
+        "price": "20",
+        "status": True,
+        "split_link": "",
+        "match_link": "",
+    }
+
+    db_expected = {
+        "orders": [
+            {
+                "uid": "1",
+                "side": "buy",
+                "type": "wood",
+                "quantity": "10",
+                "price": "10",
+                "status": True,
+                "split_link": "",
+                "match_link": "",
+            },
+            {
+                "uid": "2",
+                "side": "sell",
+                "type": "wood",
+                "quantity": "10",
+                "price": "20",
+                "status": True,
+                "split_link": "",
+                "match_link": "",
+            },
+        ]
+    }
+
+    app.matching(order_in)
+
+    assert app.read_db() == db_expected
+
+
+def test_matching_buy_qt_price_diff():
+    # price different, qty different
+    # sell x, with buy price > x
+
+    app.reset()
+
+    db = {
+        "orders": [
+            {
+                "uid": "1",
+                "side": "sell",
+                "type": "wood",
+                "quantity": "100",
+                "price": "10",
+                "status": True,
+                "split_link": "",
+                "match_link": "",
+            },
+        ]
+    }
+
+    app.init_db(db)
+
+    order_in = {
+        "uid": "2",
+        "side": "buy",
+        "type": "wood",
+        "quantity": "10",
+        "price": "20",
         "status": True,
         "split_link": "",
         "match_link": "",
@@ -342,10 +408,10 @@ def test_matching_sell_qt_diff_buy_smaller_allFilled():
                 "side": "buy",
                 "type": "wood",
                 "quantity": "10",
-                "price": "20",
+                "price": "10",
                 "status": False,
                 "split_link": "",
-                "match_link": "3",
+                "match_link": "2",
             },
             {
                 "uid": "2",
@@ -363,8 +429,19 @@ def test_matching_sell_qt_diff_buy_smaller_allFilled():
                 "type": "wood",
                 "quantity": "10",
                 "price": "20",
+                "price": "5",
                 "status": False,
                 "split_link": "",
+                "match_link": "",
+            },
+            {
+                "uid": "3",
+                "side": "sell",
+                "type": "wood",
+                "quantity": "90",
+                "price": "5",
+                "status": True,
+                "split_link": "2",
                 "match_link": "",
             },
             {
