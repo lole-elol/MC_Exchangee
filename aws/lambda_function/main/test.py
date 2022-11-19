@@ -235,7 +235,7 @@ def test_matching_buy_qt_diff():
                 "price": "10",
                 "status": True,
                 "split_link": "",
-                "match_link": "2",
+                "match_link": "",
             },
             {
                 "uid": "2",
