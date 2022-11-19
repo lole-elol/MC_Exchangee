@@ -44,21 +44,80 @@ def matching(in_order):
         KeyConditionExpression=Key("type").eq(in_order["type"]) & Key("status").eq(1),
     )
     if "Items" in response:
-        response = [
-            order for order in response["Items"] if order["side"] != in_order["side"]
-        ]
-        response.sort(
+        response = (
+            [  # Get only orders which are on the opposite site of the incoming one
+                order
+                for order in response["Items"]
+                if order["side"] != in_order["side"]
+            ]
+        )
+        response.sort(  # sort based on the unit price
             key=lambda x: x.get("price"), reverse=False if in_isBuyOrder else True
         )
         # print("response: ", response)
+
+        # match = True
+        ### while match:
+
+        # for order in response
+        # ........
+        # match case -> tempdb.append
+        # non match case -> match = False
+
+        # sort temp tmpdb
+        child = None
+
         for order in response:
+
             if in_isBuyOrder:
                 # buy order
                 if in_order["price"] == order["price"]:
-                    in_order["match_link"] = order["orderID"]
-                    order["status"], in_order["status"] = 0, 0
-                    write_to_order_book(in_order)
-                    write_to_order_book(order)
+
+                    if in_order["quantity"] > order["quantity"]:
+                        # buy qt > sell qt -> buy split
+                        diff_buy = in_order.copy()
+                        in_order["quantity"] = order["quantity"]
+                        in_order["match_link"] = order["orderID"]
+                        order["status"], in_order["status"] = 0, 0
+
+                        # new child order
+                        diff_buy["quantity"] -= order["quantity"]
+                        diff_buy["split_link"] = diff_buy["orderID"]
+                        diff_buy["orderID"] = str(
+                            max(int(diff_buy["orderID"]), int(in_order["orderID"])) + 1
+                        )  # TODO change to uid later + remove max
+                        child = diff_buy["split_link"]
+                        write_to_order_book(diff_buy)
+                        write_to_order_book(in_order)
+                        write_to_order_book(order)
+
+                    elif in_order["quantity"] < order["quantity"]:
+                        # buy qt < sell qt -> sell split
+                        diff_sell = order.copy()
+                        order["quantity"] = in_order["quantity"]
+                        in_order["match_link"] = order["orderID"]
+                        order["status"], in_order["status"] = 0, 0
+
+                        # new child order_
+                        diff_sell["quantity"] -= in_order["quantity"]
+                        diff_sell["split_link"] = diff_sell["orderID"]
+                        diff_sell["orderID"] = str(
+                            max(int(diff_sell["orderID"]), int(in_order["orderID"])) + 1
+                        )  # TODO change to uid later
+
+                        child = diff_sell["split_link"]
+                        write_to_order_book(diff_sell)
+                        write_to_order_book(in_order)
+                        write_to_order_book(order)
+
+                    else:
+                        # buy qt = sell qt
+                        in_order["match_link"] = order["orderID"]
+                        order["status"], in_order["status"] = 0, 0
+
+                        write_to_order_book(in_order)
+                        write_to_order_book(order)
+
                 elif in_order["price"] > order["price"]:
                     # buy order price > sell order
 
@@ -77,6 +136,7 @@ def matching(in_order):
                             max(int(diff_buy["orderID"]), int(in_order["orderID"])) + 1
                         )  # TODO change to uid later + remove max
 
+                        child = diff_buy["split_link"]
                         write_to_order_book(diff_buy)
                         write_to_order_book(in_order)
                         write_to_order_book(order)
@@ -95,6 +155,8 @@ def matching(in_order):
                         diff_sell["orderID"] = str(
                             max(int(diff_sell["orderID"]), int(in_order["orderID"])) + 1
                         )  # TODO change to uid later
+
+                        child = diff_sell["split_link"]
                         write_to_order_book(diff_sell)
                         write_to_order_book(in_order)
                         write_to_order_book(order)
@@ -109,15 +171,74 @@ def matching(in_order):
                         write_to_order_book(order)
                 else:
                     # buy order price < sell order
-                    write_to_order_book(in_order)
+                    if child is not None:
+                        if in_order["split_link"] != child:
+                            write_to_order_book(in_order)
+                    else:
+                        write_to_order_book(in_order)
 
             elif not in_isBuyOrder:
                 # sell order
                 if in_order["price"] == order["price"]:
-                    order["match_link"] = in_order["orderID"]
-                    order["status"], in_order["status"] = 0, 0
-                    write_to_order_book(in_order)
-                    write_to_order_book(order)
+
+                    if in_order["quantity"] > order["quantity"]:
+                        # sell qt > buy qt -> sell split
+                        diff_sell = in_order.copy()
+                        in_order["quantity"] = order["quantity"]
+                        order["match_link"] = in_order["orderID"]
+                        order["status"], in_order["status"] = 0, 0
+
+                        # new child order
+                        diff_sell["quantity"] -= order["quantity"]
+                        diff_sell["split_link"] = diff_sell["orderID"]
+                        diff_sell["orderID"] = str(
+                            max(int(diff_sell["orderID"]), int(in_order["orderID"])) + 1
+                        )
+
+                        # save split link id in child
+                        child = diff_sell["split_link"]
+
+                        write_to_order_book(diff_sell)  #
+                        write_to_order_book(in_order)  # replaces existing entry
+                        write_to_order_book(order)  # replaces existing entry
+
+                        in_order = diff_sell.copy()
+                        in_order["orderID"] = str(
+                            max(int(diff_sell["orderID"]), int(in_order["orderID"])) + 1
+                        )
+                        diff_sell["match_link"] = ""
+                        diff_sell["status"] = 1
+
+                    elif in_order["quantity"] < order["quantity"]:
+                        # sell qt < buy qt -> buy split
+
+                        diff_buy = order.copy()
+                        order["quantity"] = in_order["quantity"]
+                        order["match_link"] = in_order["orderID"]
+                        order["status"], in_order["status"] = 0, 0
+
+                        # new child order_
+                        diff_buy["quantity"] -= in_order["quantity"]
+                        diff_buy["split_link"] = diff_buy["orderID"]
+                        diff_buy["orderID"] = str(
+                            max(int(diff_buy["orderID"]), int(in_order["orderID"])) + 1
+                        )  # TODO change to uid later
+
+                        # save split link id in child
+                        child = diff_buy["split_link"]
+
+                        write_to_order_book(diff_buy)
+                        write_to_order_book(in_order)
+                        write_to_order_book(order)
+
+                    else:
+                        # buy qt = sell qt
+                        order["match_link"] = in_order["orderID"]
+                        order["status"], in_order["status"] = 0, 0
+
+                        write_to_order_book(in_order)
+                        write_to_order_book(order)
+
                 elif in_order["price"] < order["price"]:
                     # sell order price < buy order
 
@@ -135,6 +256,9 @@ def matching(in_order):
                         diff_sell["orderID"] = str(
                             max(int(diff_sell["orderID"]), int(in_order["orderID"])) + 1
                         )
+
+                        # save split link id in child
+                        child = diff_sell["split_link"]
 
                         write_to_order_book(diff_sell)
                         write_to_order_book(in_order)
@@ -155,6 +279,9 @@ def matching(in_order):
                             max(int(diff_buy["orderID"]), int(in_order["orderID"])) + 1
                         )  # TODO change to uid later
 
+                        # save split link id in child
+                        child = diff_buy["split_link"]
+
                         write_to_order_book(diff_buy)
                         write_to_order_book(in_order)
                         write_to_order_book(order)
@@ -170,7 +297,11 @@ def matching(in_order):
 
                 else:
                     # sell order price > buy order
-                    write_to_order_book(in_order)
+                    if child is not None:
+                        if in_order["split_link"] != child:
+                            write_to_order_book(in_order)
+                    else:
+                        write_to_order_book(in_order)
 
 
 # lambda_handler("a", None)
