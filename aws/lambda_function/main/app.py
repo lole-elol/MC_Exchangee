@@ -121,12 +121,12 @@ def balance():
         if order['ownerID'] in usersUnbalanced:
             if order["side"] == "buy":
                 usersUnbalanced[order['ownerID']] -= order['price'] * order['quantity']
-            else: 
+            else:
                 usersUnbalanced[order['ownerID']] += order['price'] * order['quantity']
         else:
             if order["side"] == "buy":
                 usersUnbalanced[order['ownerID']] = -order['price'] * order['quantity']
-            else: 
+            else:
                 usersUnbalanced[order['ownerID']] = order['price'] * order['quantity']
     
     for user in usersUnbalanced:
@@ -135,7 +135,6 @@ def balance():
 
     users = BALANCE.scan()["Items"]
     
-    pass
 
 def write_to_order_book(order) -> None:
 
@@ -147,7 +146,8 @@ def get_all_user_orders(ownerID):
         KeyConditionExpression=Key("ownerID").eq(ownerID),
     )
     if 'Items' in response:
-        return response['Items']
+        res = [{**i,'price':float(i['price']),'quantity':float(i['quantity']),'status':int(i['status'])} for i in response['Items']]
+        return res
     else:
         return 0
 
@@ -164,7 +164,8 @@ def get_uncollected_user_orders(ownerID):
         KeyConditionExpression=Key("ownerID").eq(ownerID) & Key("userCollected").eq(0),
     )
     if 'Items' in response:
-        return response['Items']
+        res = [{**i,'price':float(i['price']),'quantity':float(i['quantity']),'status':int(i['status'])} for i in response['Items']]
+        return res
     else:
         return 0
 
@@ -174,7 +175,8 @@ def get_unbalanced_and_matched_orders():
         KeyConditionExpression=Key("balanced").eq(0) & Key("status").eq(1), #get all unbalanced and matched orders
     )
     if 'Items' in response:
-        return response['Items']
+        res = [{**i,'price':float(i['price']),'quantity':float(i['quantity']),'status':int(i['status'])} for i in response['Items']]
+        return res
     else:
         return 0
 
@@ -187,7 +189,8 @@ def delete_order(primaryKey,sortKey):
 def get_order(primaryKey):
     result = TABLE.get_item(Key={'orderID':primaryKey})
     if 'Item' in result:
-        return result['Item']
+        res = [{**i,'price':float(i['price']),'quantity':float(i['quantity']),'status':int(i['status'])} for i in response['Item']]
+        return res
     else:
         return 0
 
@@ -197,11 +200,10 @@ def get_all_unmatched_orders():
         KeyConditionExpression=Key("status").eq(1),
     )
     if 'Items' in response:
-        return response['Items']
+        res = [{**i,'price':float(i['price']),'quantity':float(i['quantity']),'status':int(i['status'])} for i in response['Items']]
+        return res
     else:
         return 0
-
-
 
 def matching(in_order):
     in_isBuyOrder = True if in_order["side"] == "buy" else False
@@ -478,7 +480,7 @@ def matching(in_order):
 
 # lambda_handler("a", None)
 
-eventBuy = {"uid": 123, "side": "BUY", "type": "ROCK", "quantity": 10, "price": 1000}
+# eventBuy = {"uid": 123, "side": "BUY", "type": "ROCK", "quantity": 10, "price": 1000}
 
 #    {
 #       "orderID": STR ----> PARTITION K
