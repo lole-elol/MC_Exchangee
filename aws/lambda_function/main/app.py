@@ -44,7 +44,7 @@ def lambda_handler(event, context):
     print('requestPath:',requestPath,'Method:',event["httpMethod"],'Body:',event["body"],'QueryStringParameters:',event['queryStringParameters'])
 
     # Technically better via TryExcept but I can't remember the exact Error
-    event["body"] = json.loads(event["body"]) if event['body'] is not None else None
+    # event["body"] = json.loads(event["body"]) if event['body'] is not None else None
     
     if requestPath == "/order":
         if event["httpMethod"] == "POST":
