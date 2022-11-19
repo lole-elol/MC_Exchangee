@@ -13,8 +13,18 @@ def lambda_handler(event, context):
 
     if event["body"] is None:
         raise ValueError
-
-    write_to_order_book(event)
+    elif event["body"] is "Order":
+        pass
+    elif event["body"] is "OrderList":
+        pass
+    elif event["body"] is "Summary":
+        pass
+    elif event["body"] is "GetOrder":
+        pass
+    elif event["body"] is "Balance":
+        pass
+    else:
+        print("no matching action found")
 
     return {
         "statusCode": 200,
@@ -184,7 +194,6 @@ def matching(in_order):
                     if firstRun:
                         write_to_order_book(in_order)
 
-
             elif not in_isBuyOrder:
                 # sell order
                 if in_order["price"] == order["price"]:
@@ -272,7 +281,6 @@ def matching(in_order):
                         write_to_order_book(in_order)
                         write_to_order_book(order)
 
-
                     elif in_order["quantity"] < order["quantity"]:
                         # sell qt < buy qt -> buy split
 
@@ -309,7 +317,6 @@ def matching(in_order):
                     if firstRun:
                         write_to_order_book(in_order)
             firstRun = False
-
 
 
 # lambda_handler("a", None)
