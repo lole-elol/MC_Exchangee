@@ -193,15 +193,14 @@ def test_matching_sell_price_diff():
 ###################### max stuff #############
 # BUY perspective:
 
-# - qty buy < qty sell 
-# - qty buy < qty sqll & partly fill
-# - qty buy > qty sell
-# - qty buy > qty sell & partly fill
+# - qty buy < qty sell √
+# - qty buy > qty sell √
+# - qty buy > qty sell -> partly fill √
 
 # sell perspective:
-# - qty buy < qty sell
-# - qty buy < qty sqll & partly fill 
-# - qty buy > qty sell
+# - qty buy < qty sell √
+# - qty buy < qty sqll -> partly fill √
+# - qty buy > qty sell √
 
 def test_matching_sell_qt_diff_buy_smaller_partlyFilled():
     # qty buy < qty sqll & partly fill
@@ -514,7 +513,7 @@ def test_matching_buy_qt_diff_buy_smaller_allFilled():
                 "price": "20",
                 "status": False,
                 "split_link": "",
-                "match_link": "3",
+                "match_link": "",
             },
             {
                 "uid": "2",
@@ -524,7 +523,7 @@ def test_matching_buy_qt_diff_buy_smaller_allFilled():
                 "price": "20",
                 "status": False,
                 "split_link": "",
-                "match_link": "3",
+                "match_link": "",
             },
             {
                 "uid": "3",
@@ -534,7 +533,7 @@ def test_matching_buy_qt_diff_buy_smaller_allFilled():
                 "price": "20",
                 "status": False,
                 "split_link": "",
-                "match_link": "",
+                "match_link": "1",
             },
             {
                 "uid": "4",
@@ -544,7 +543,7 @@ def test_matching_buy_qt_diff_buy_smaller_allFilled():
                 "price": "20",
                 "status": False,
                 "split_link": "3",
-                "match_link": "",
+                "match_link": "2",
             },
             {
                 "uid": "5",
@@ -580,7 +579,7 @@ def test_matching_buy_qt_diff_buy_bigger_allFilled():
                 "match_link": "",
             },
             {
-                "uid": "1",
+                "uid": "2",
                 "side": "sell",
                 "type": "wood",
                 "quantity": "5",
@@ -594,7 +593,7 @@ def test_matching_buy_qt_diff_buy_bigger_allFilled():
     app.init_db(db)
 
     order_in = {
-        "uid": "2",
+        "uid": "3",
         "side": "buy",
         "type": "wood",
         "quantity": "15",
@@ -614,11 +613,91 @@ def test_matching_buy_qt_diff_buy_bigger_allFilled():
                 "price": "20",
                 "status": False,
                 "split_link": "",
-                "match_link": "2",
+                "match_link": "",
             },
             {
                 "uid": "2",
+                "side": "sell",
+                "type": "wood",
+                "quantity": "5",
+                "price": "20",
+                "status": False,
+                "split_link": "",
+                "match_link": "",
+            },
+            {
+                "uid": "3",
                 "side": "buy",
+                "type": "wood",
+                "quantity": "10",
+                "price": "20",
+                "status": False,
+                "split_link": "",
+                "match_link": "1",
+            },
+            {
+                "uid": "4",
+                "side": "buy",
+                "type": "wood",
+                "quantity": "5",
+                "price": "20",
+                "status": False,
+                "split_link": "3",
+                "match_link": "2",
+            }
+        ]
+    }
+
+    app.matching(order_in)
+
+    assert app.read_db() == db_expected
+
+def test_matching_buy_qt_diff_buy_bigger_partlyFilled():
+    # - qty buy > qty sell -> partly fill
+
+    app.reset()
+    db = {
+        "orders": [
+            {
+                "uid": "1",
+                "side": "sell",
+                "type": "wood",
+                "quantity": "10",
+                "price": "20",
+                "status": True,
+                "split_link": "",
+                "match_link": "",
+            },
+            {
+                "uid": "2",
+                "side": "sell",
+                "type": "wood",
+                "quantity": "5",
+                "price": "20",
+                "status": True,
+                "split_link": "",
+                "match_link": "",
+            }
+        ]
+    }
+    app.init_db(db)
+
+    order_in = {
+        "uid": "3",
+        "side": "buy",
+        "type": "wood",
+        "quantity": "20",
+        "price": "20",
+        "status": True,
+        "split_link": "",
+        "match_link": "",
+    }
+
+    db_expected = {
+        "orders": [
+            {
+                "uid": "1",
+                "side": "sell",
                 "type": "wood",
                 "quantity": "10",
                 "price": "20",
@@ -627,15 +706,45 @@ def test_matching_buy_qt_diff_buy_bigger_allFilled():
                 "match_link": "",
             },
             {
-                "uid": "3",
+                "uid": "2",
                 "side": "sell",
                 "type": "wood",
                 "quantity": "5",
                 "price": "20",
-                "status": True,
-                "split_link": "1",
+                "status": False,
+                "split_link": "",
                 "match_link": "",
             },
+            {
+                "uid": "3",
+                "side": "buy",
+                "type": "wood",
+                "quantity": "10",
+                "price": "20",
+                "status": False,
+                "split_link": "",
+                "match_link": "1",
+            },
+            {
+                "uid": "4",
+                "side": "buy",
+                "type": "wood",
+                "quantity": "5",
+                "price": "20",
+                "status": False,
+                "split_link": "3",
+                "match_link": "2",
+            },
+            {
+                "uid": "5",
+                "side": "buy",
+                "type": "wood",
+                "quantity": "5",
+                "price": "20",
+                "status": True,
+                "split_link": "4",
+                "match_link": "",
+            }
         ]
     }
 
