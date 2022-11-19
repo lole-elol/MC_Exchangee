@@ -7,6 +7,7 @@ import botocore
 DB_PATH = os.path.join(os.path.dirname(__file__), "db.json")
 DB = boto3.resource("dynamodb", region_name="eu-central-1")
 TABLE = DB.Table("orders")
+BALANCE = DB.Table("users")
 
 # import requests
 # def matching(in_order):
@@ -40,8 +41,8 @@ def success(order):
     
 
 def lambda_handler(event, context):
-
-    if event["path"] == "Order":
+    print(event)
+    if event["path"] == "/order":
         if event["httpMethod"] == "POST":
             if event["body"]["action"] == "buy" or event["body"]["action"] == "sell":
                 matching(event['body'])
@@ -71,14 +72,14 @@ def lambda_handler(event, context):
                 return FAILURE
         
 
-    elif event["path"] == "OrderList":  # Order book of open orders filtzer by status
+    elif event["path"] == "/orderList":  # Order book of open orders filtzer by status
         if event["httpMethod"] == "GET":
             if to_ret := get_all_unmatched_orders():
                 return success(to_ret)
             else:
                 return FAILURE
 
-    elif event["path"] == "Summary":  # Orderbook of user filzer by owner id
+    elif event["path"] == "/summary":  # Orderbook of user filzer by owner id
         if event["httpMethod"] == "GET":
             if to_ret := get_all_user_orders(event['ownerID']):
                 return success(to_ret)
@@ -86,14 +87,14 @@ def lambda_handler(event, context):
                 return FAILURE
             
 
-    elif event["path"] == "Poll":  # return Order filtered by user and collected
+    elif event["path"] == "/poll":  # return Order filtered by user and collected
         if event["httpMethod"] == "GET":
             if to_ret := get_uncollected_user_orders(event['ownerID']):
                 return success(to_ret)
             else:
                 return FAILURE
 
-    elif event["path"] == "Balance":
+    elif event["path"] == "/balance":
         if event["httpMethod"] == "GET":
             pass
 
@@ -108,6 +109,26 @@ def lambda_handler(event, context):
             ),
         }
 
+
+def balance():
+    # claculate balance of users
+    users = {}
+    orders = get_unbalanced_and_matched_orders()
+    for order in orders:
+        if order['ownerID'] in users:
+            if order["side"] == "buy":
+                users[order['ownerID']] -= order['price'] * order['quantity']
+            else: 
+                users[order['ownerID']] += order['price'] * order['quantity']
+        else:
+            if order["side"] == "buy":
+                users[order['ownerID']] = -order['price'] * order['quantity']
+            else: 
+                users[order['ownerID']] = order['price'] * order['quantity']
+    
+    users = BALANCE.scan()["Items"]
+    
+    pass
 
 def write_to_order_book(order) -> None:
 
@@ -134,6 +155,16 @@ def get_uncollected_user_orders(ownerID):
     else:
         return 0
 
+def get_unbalanced_and_matched_orders():
+    response = TABLE.query(
+        IndexName="balanced-status-index",
+        KeyConditionExpression=Key("balanced").eq(0) & Key("status").eq(1), #get all unbalanced and matched orders
+    )
+    if 'Items' in response:
+        return response['Items']
+    else:
+        return 0
+
 # def edit_order(oprimary_key, order):
 #     TABLE.update_item(TableName="orders", Key=oprimary_key, UpdateExpression=order)
 
@@ -149,7 +180,7 @@ def get_order(primaryKey):
 
 def get_all_unmatched_orders():
     response = TABLE.query(
-        IndexName="status-index	",
+        IndexName="status-index",
         KeyConditionExpression=Key("status").eq(1),
     )
     if 'Items' in response:
@@ -188,7 +219,7 @@ def matching(in_order):
         # non match case -> match = False
 
         # sort temp tmpdb
-        child = None
+        # child = None
         firstRun = True
         for order in response:
             if in_isBuyOrder:
