@@ -32,20 +32,32 @@ def lambda_handler(event, context):
                 # SELL
                 pass
 
-    if event["body"] is None:
-        raise ValueError
-    elif event["body"] == "Order":
-        pass
-    elif event["body"] == "OrderList":
-        pass
-    elif event["body"] == "Summary":
-        pass
-    elif event["body"] == "GetOrder":
-        pass
-    elif event["body"] == "Balance":
-        pass
+    elif event["path"] == "OrderList":
+        if event["httpMethod"] == "GET":
+            if event["body"]["action"] == "BUY":
+                pass
+            else:
+                # SELL
+                pass
+
+    elif event["path"] == "Summary":
+        if event["httpMethod"] == "GET":
+            if event["body"]["action"] == "BUY":
+                pass
+            else:
+                # SELL
+                pass
+
+    elif event["path"] == "Get":
+        if event["httpMethod"] == "GET":
+            pass
+
+    elif event["path"] == "Balance":
+        if event["httpMethod"] == "GET":
+            pass
+
     else:
-        print("no matching action found")
+        print("no viable path")
 
     return {
         "statusCode": 200,
