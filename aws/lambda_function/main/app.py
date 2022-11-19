@@ -1,5 +1,6 @@
 import json
 import boto3
+from boto3.dynamodb.conditions import Key
 import os
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "db.json")
@@ -38,6 +39,16 @@ def edit_order(oprimary_key, order):
 
 
 def matching(order):
+    response = TABLE.query(
+        IndexName='type-side-index',
+        KeyConditionExpression=Key("type").eq(order['type']) & Key("side").eq(order['side']),
+        ScanIndexForward=False, #  true = ascending, false = descending
+    )
+    if 'Items' in response: # check if we have ANY buy/sell orders
+        # loop all orders in the db???? 
+        for order in response['Items'].sort(key=lambda x: x.get('price'), reverse=False if order['type'] == 'BUY' else True): 
+            pass
+
     order = {}
 
     write_to_order_book(order)
