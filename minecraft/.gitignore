@@ -1,0 +1,5 @@
+# Gitignore whitelist mode
+*
+!python-plugins
+!Readme.md
+!.gitignore
