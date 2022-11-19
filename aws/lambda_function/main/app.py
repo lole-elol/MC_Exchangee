@@ -187,8 +187,8 @@ def delete_order(primaryKey,sortKey):
     TABLE.delete_item(TableName="orders", Key={'orderID':primaryKey,'side':sortKey}, ConditionExpression="attribute_exists(orderID)")
 
 def get_order(primaryKey):
-    result = TABLE.get_item(Key={'orderID':primaryKey})
-    if 'Item' in result:
+    response = TABLE.get_item(Key={'orderID':primaryKey})
+    if 'Item' in response:
         res = [{**i,'price':float(i['price']),'quantity':float(i['quantity']),'status':int(i['status'])} for i in response['Item']]
         return res
     else:
