@@ -13,15 +13,15 @@ def lambda_handler(event, context):
 
     if event["body"] is None:
         raise ValueError
-    elif event["body"] is "Order":
+    elif event["body"] == "Order":
         pass
-    elif event["body"] is "OrderList":
+    elif event["body"] == "OrderList":
         pass
-    elif event["body"] is "Summary":
+    elif event["body"] == "Summary":
         pass
-    elif event["body"] is "GetOrder":
+    elif event["body"] == "GetOrder":
         pass
-    elif event["body"] is "Balance":
+    elif event["body"] == "Balance":
         pass
     else:
         print("no matching action found")
