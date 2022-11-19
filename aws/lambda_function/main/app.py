@@ -45,7 +45,7 @@ def lambda_handler(event, context):
     event["body"] = json.loads(event["body"])
     if requestPath == "/order":
         if event["httpMethod"] == "POST":
-            if event["body"]["action"] == "buy" or event["body"]["action"] == "sell":
+            if event["body"]["side"] == "buy" or event["body"]["side"] == "sell":
                 matching(event['body'])
                 return SUCCESS
                  
