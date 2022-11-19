@@ -1,8 +1,6 @@
 import json
 
 
-# import requesfffts
-
 def lambda_handler(event, context):
     return {
         "statusCode": 200,
@@ -13,4 +11,4 @@ def lambda_handler(event, context):
     }
 
 
-lambda_handler("a",None)
+lambda_handler("a", None)
