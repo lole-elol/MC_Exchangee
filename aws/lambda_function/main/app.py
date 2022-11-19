@@ -53,12 +53,124 @@ def matching(in_order):
         # print("response: ", response)
         for order in response:
             if in_isBuyOrder:
+                # buy order
                 if in_order["price"] == order["price"]:
-
                     in_order["match_link"] = order["orderID"]
                     order["status"], in_order["status"] = 0, 0
                     write_to_order_book(in_order)
                     write_to_order_book(order)
+                elif in_order["price"] > order["price"]:
+                    # buy order price > sell order
+
+                    if in_order["quantity"] > order["quantity"]:
+                        # buy qt > sell qt -> buy split
+                        diff_buy = in_order.copy()
+                        in_order["quantity"] = order["quantity"]
+                        in_order["match_link"] = order["orderID"]
+                        order["status"], in_order["status"] = 0, 0
+                        in_order["price"] = order["price"]
+
+                        # new child order
+                        diff_buy["quantity"] -= order["quantity"]
+                        diff_buy["split_link"] = diff_buy["orderID"]
+                        diff_buy["orderID"] = str(
+                            max(int(diff_buy["orderID"]), int(in_order["orderID"])) + 1
+                        )  # TODO change to uid later + remove max
+
+                        write_to_order_book(diff_buy)
+                        write_to_order_book(in_order)
+                        write_to_order_book(order)
+
+                    elif in_order["quantity"] < order["quantity"]:
+                        # buy qt < sell qt -> sell split
+                        diff_sell = order.copy()
+                        order["quantity"] = in_order["quantity"]
+                        in_order["match_link"] = order["orderID"]
+                        order["status"], in_order["status"] = 0, 0
+                        in_order["price"] = order["price"]
+
+                        # new child order_
+                        diff_sell["quantity"] -= in_order["quantity"]
+                        diff_sell["split_link"] = diff_sell["orderID"]
+                        diff_sell["orderID"] = str(
+                            max(int(diff_sell["orderID"]), int(in_order["orderID"])) + 1
+                        )  # TODO change to uid later
+                        write_to_order_book(diff_sell)
+                        write_to_order_book(in_order)
+                        write_to_order_book(order)
+
+                    else:
+                        # buy qt = sell qt
+                        in_order["match_link"] = order["orderID"]
+                        order["status"], in_order["status"] = 0, 0
+                        in_order["price"] = order["price"]
+
+                        write_to_order_book(in_order)
+                        write_to_order_book(order)
+                else:
+                    # buy order price < sell order
+                    write_to_order_book(in_order)
+
+            elif not in_isBuyOrder:
+                # sell order
+                if in_order["price"] == order["price"]:
+                    order["match_link"] = in_order["orderID"]
+                    order["status"], in_order["status"] = 0, 0
+                    write_to_order_book(in_order)
+                    write_to_order_book(order)
+                elif in_order["price"] < order["price"]:
+                    # sell order price < buy order
+
+                    if in_order["quantity"] > order["quantity"]:
+                        # sell qt > buy qt -> sell split
+                        diff_sell = in_order.copy()
+                        in_order["quantity"] = order["quantity"]
+                        order["match_link"] = in_order["orderID"]
+                        order["status"], in_order["status"] = 0, 0
+                        order["price"] = in_order["price"]
+
+                        # new child order
+                        diff_sell["quantity"] -= order["quantity"]
+                        diff_sell["split_link"] = diff_sell["orderID"]
+                        diff_sell["orderID"] = str(
+                            max(int(diff_sell["orderID"]), int(in_order["orderID"])) + 1
+                        )
+
+                        write_to_order_book(diff_sell)
+                        write_to_order_book(in_order)
+                        write_to_order_book(order)
+                    elif in_order["quantity"] < order["quantity"]:
+                        # sell qt < buy qt -> buy split
+
+                        diff_buy = order.copy()
+                        order["quantity"] = in_order["quantity"]
+                        order["match_link"] = in_order["orderID"]
+                        order["status"], in_order["status"] = 0, 0
+                        order["price"] = in_order["price"]
+
+                        # new child order_
+                        diff_buy["quantity"] -= in_order["quantity"]
+                        diff_buy["split_link"] = diff_buy["orderID"]
+                        diff_buy["orderID"] = str(
+                            max(int(diff_buy["orderID"]), int(in_order["orderID"])) + 1
+                        )  # TODO change to uid later
+
+                        write_to_order_book(diff_buy)
+                        write_to_order_book(in_order)
+                        write_to_order_book(order)
+
+                    else:
+                        # buy qt = sell qt
+                        order["match_link"] = in_order["orderID"]
+                        order["status"], in_order["status"] = 0, 0
+                        order["price"] = in_order["price"]
+
+                        write_to_order_book(in_order)
+                        write_to_order_book(order)
+
+                else:
+                    # sell order price > buy order
+                    write_to_order_book(in_order)
 
 
 # lambda_handler("a", None)
@@ -66,7 +178,7 @@ def matching(in_order):
 eventBuy = {"uid": 123, "side": "BUY", "type": "ROCK", "quantity": 10, "price": 1000}
 
 #    {
-#       "orderID": STR ----> PARTITION KEY
+#       "orderID": STR ----> PARTITION K
 #       "uid": STR,
 #       "side": STR, -> "SELL/BUY" ----> SORT KEY
 #       "type": str, -> ['rock','stone','dirt','gold','diamond']

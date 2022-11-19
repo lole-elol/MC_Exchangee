@@ -59,6 +59,7 @@ def test_matching_sell_buy():
 
     app.matching(order_in)
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -132,6 +133,7 @@ def test_matching_buy_sell():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -211,6 +213,7 @@ def test_matching_buy_price_diff_1_match():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -261,7 +264,7 @@ def test_matching_buy_price_diff_2_no_match():
             "side": "buy",
             "type": "wood",
             "quantity": Decimal("10"),
-            "price": Decimal("10"),
+            "price": Decimal("20"),
             "status": Decimal("1"),
             "split_link": "",
             "match_link": "",
@@ -281,6 +284,7 @@ def test_matching_buy_price_diff_2_no_match():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -295,7 +299,7 @@ def test_matching_buy_price_diff_2_no_match():
 
 def test_matching_sell_price_diff_1_match():
     # price different, qty same
-    # sell x, with price > x
+    # buy x, with price > x
 
     app.reset()
 
@@ -351,6 +355,7 @@ def test_matching_sell_price_diff_1_match():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -421,6 +426,7 @@ def test_matching_sell_price_diff_2_no_match():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -517,6 +523,7 @@ def test_matching_sell_price_qt_diff_1_part_match():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -586,6 +593,7 @@ def test_matching_sell_price_qt_diff_2_no_match():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -599,7 +607,7 @@ def test_matching_sell_price_qt_diff_2_no_match():
 
 
 def test_matching_sell_price_qt_diff_3_part_match():
-    # -  sell x qt y -> buy u > x qt v < y --> part match
+    # -  sell-pr. x qt y -> buy u > x qt v < y --> part match
 
     app.reset()
 
@@ -608,8 +616,8 @@ def test_matching_sell_price_qt_diff_3_part_match():
             "orderID": "1",
             "side": "sell",
             "type": "wood",
-            "quantity": Decimal("10"),
-            "price": Decimal("20"),
+            "quantity": Decimal("20"),
+            "price": Decimal("10"),
             "status": Decimal("1"),
             "split_link": "",
             "match_link": "",
@@ -623,7 +631,7 @@ def test_matching_sell_price_qt_diff_3_part_match():
         "side": "buy",
         "type": "wood",
         "quantity": Decimal("10"),
-        "price": Decimal("10"),
+        "price": Decimal("20"),
         "status": Decimal("1"),
         "split_link": "",
         "match_link": "",
@@ -651,7 +659,7 @@ def test_matching_sell_price_qt_diff_3_part_match():
             "match_link": "1",
         },
         {
-            "orderID": "3",
+            "orderID": "3",  # should be 3
             "side": "sell",
             "type": "wood",
             "quantity": Decimal("10"),
@@ -665,6 +673,7 @@ def test_matching_sell_price_qt_diff_3_part_match():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -733,6 +742,7 @@ def test_matching_sell_price_qt_diff_4__no_match():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -781,20 +791,20 @@ def test_matching_buy_price_qt_diff_1_no_match():
     db_expected = [
         {
             "orderID": "1",
-            "side": "sell",
+            "side": "buy",
             "type": "wood",
-            "quantity": Decimal("20"),
-            "price": Decimal("20"),
+            "quantity": Decimal("10"),
+            "price": Decimal("10"),
             "status": Decimal("1"),
             "split_link": "",
             "match_link": "",
         },
         {
             "orderID": "2",
-            "side": "buy",
+            "side": "sell",
             "type": "wood",
-            "quantity": Decimal("10"),
-            "price": Decimal("10"),
+            "quantity": Decimal("20"),
+            "price": Decimal("20"),
             "status": Decimal("1"),
             "split_link": "",
             "match_link": "",
@@ -804,6 +814,7 @@ def test_matching_buy_price_qt_diff_1_no_match():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -882,6 +893,7 @@ def test_matching_buy_price_qt_diff_2_part_match():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -950,6 +962,7 @@ def test_matching_buy_price_qt_diff_3_no_match():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -1011,7 +1024,7 @@ def test_matching_buy_price_qt_diff_4_part_match():
             "price": Decimal("10"),
             "status": Decimal("0"),
             "split_link": "",
-            "match_link": "1",
+            "match_link": "",
         },
         {
             "orderID": "3",
@@ -1028,6 +1041,7 @@ def test_matching_buy_price_qt_diff_4_part_match():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -1130,13 +1144,14 @@ def test_matching_sell_qt_diff_buy_smaller_partlyFilled():
             "quantity": Decimal("10"),
             "price": Decimal("20"),
             "status": Decimal("1"),
-            "split_link": "2",
+            "split_link": "3",
             "match_link": "",
         },
     ]
 
     app.matching(order_in)
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -1244,6 +1259,7 @@ def test_matching_sell_qt_diff_buy_smaller_allFilled():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -1321,6 +1337,7 @@ def test_matching_sell_qt_diff_buy_bigger_allFilled():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -1429,6 +1446,7 @@ def test_matching_buy_qt_diff_buy_smaller_allFilled():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -1526,6 +1544,7 @@ def test_matching_buy_qt_diff_buy_bigger_allFilled():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -1633,6 +1652,7 @@ def test_matching_buy_qt_diff_buy_bigger_partlyFilled():
     app.matching(order_in)
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
@@ -1647,6 +1667,7 @@ def test_matching_buy_qt_diff_buy_bigger_partlyFilled():
     ###
 
     db_state = app.read_db()
+    assert len(db_expected) == len(db_state)
     for el in db_expected:
         for el_a in db_state:
             if el["orderID"] == el_a["orderID"]:
