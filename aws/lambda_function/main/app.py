@@ -11,6 +11,27 @@ TABLE = DB.Table("orders")
 
 def lambda_handler(event, context):
 
+    if event["path"] == "Order":
+        if event["httpMethod"] == "POST":
+            if event["body"]["action"] == "BUY":
+                pass
+            else:
+                # SELL
+                pass
+
+        elif event["httpMethod"] == "DELETE":
+            if event["body"]["action"] == "BUY":
+                pass
+            else:
+                # SELL
+                pass
+        elif event["httpMethod"] == "GET":
+            if event["body"]["action"] == "BUY":
+                pass
+            else:
+                # SELL
+                pass
+
     if event["body"] is None:
         raise ValueError
     elif event["body"] == "Order":
