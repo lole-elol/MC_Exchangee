@@ -4,17 +4,17 @@ import app
 
 
 def test_matching_sell_buy():
-    # 1:1 match ( SELL -> BUY) (same price + qty)    
+    # 1:1 match ( SELL -> BUY) (same price + qty)
     app.reset()
 
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -25,34 +25,34 @@ def test_matching_sell_buy():
     app.init_db(db)
 
     order_in = {
-        "uid": "1",
+        "orderID": "1",
         "side": "buy",
         "type": "wood",
-        "quantity": "10",
-        "price": "10",
+        "quantity": 10,
+        "price": 10,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": False,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": False,
                 "split_link": "",
                 "match_link": "1",
@@ -71,13 +71,13 @@ def test_matching_buy_sell():
     app.reset()
 
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -88,34 +88,34 @@ def test_matching_buy_sell():
     app.init_db(db)
 
     order_in = {
-        "uid": "2",
+        "orderID": "2",
         "side": "sell",
         "type": "wood",
-        "quantity": "10",
-        "price": "10",
+        "quantity": 10,
+        "price": 10,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": False,
                 "split_link": "",
                 "match_link": "2",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": False,
                 "split_link": "",
                 "match_link": "",
@@ -144,13 +144,13 @@ def test_matching_buy_price_diff_1_match():
     app.reset()
 
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -161,34 +161,34 @@ def test_matching_buy_price_diff_1_match():
     app.init_db(db)
 
     order_in = {
-        "uid": "2",
+        "orderID": "2",
         "side": "sell",
         "type": "wood",
-        "quantity": "10",
-        "price": "10",
+        "quantity": 10,
+        "price": 10,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": False,
                 "split_link": "",
                 "match_link": "2",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": False,
                 "split_link": "",
                 "match_link": "",
@@ -208,13 +208,13 @@ def test_matching_buy_price_diff_2_no_match():
     app.reset()
 
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -225,34 +225,34 @@ def test_matching_buy_price_diff_2_no_match():
     app.init_db(db)
 
     order_in = {
-        "uid": "2",
+        "orderID": "2",
         "side": "sell",
         "type": "wood",
-        "quantity": "10",
-        "price": "30",
+        "quantity": 10,
+        "price": 30,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "30",
+                "quantity": 10,
+                "price": 30,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -272,13 +272,13 @@ def test_matching_sell_price_diff_1_match():
     app.reset()
 
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -289,34 +289,34 @@ def test_matching_sell_price_diff_1_match():
     app.init_db(db)
 
     order_in = {
-        "uid": "2",
+        "orderID": "2",
         "side": "buy",
         "type": "wood",
-        "quantity": "10",
-        "price": "20",
+        "quantity": 10,
+        "price": 20,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": False,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": False,
                 "split_link": "",
                 "match_link": "1",
@@ -336,13 +336,13 @@ def test_matching_sell_price_diff_2_no_match():
     app.reset()
 
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -353,34 +353,34 @@ def test_matching_sell_price_diff_2_no_match():
     app.init_db(db)
 
     order_in = {
-        "uid": "2",
+        "orderID": "2",
         "side": "buy",
         "type": "wood",
-        "quantity": "10",
-        "price": "10",
+        "quantity": 10,
+        "price": 10,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -416,13 +416,13 @@ def test_matching_sell_price_qt_diff_1_part_match():
     app.reset()
 
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -433,44 +433,44 @@ def test_matching_sell_price_qt_diff_1_part_match():
     app.init_db(db)
 
     order_in = {
-        "uid": "2",
+        "orderID": "2",
         "side": "buy",
         "type": "wood",
-        "quantity": "20",
-        "price": "20",
+        "quantity": 20,
+        "price": 20,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": False,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": False,
                 "split_link": "",
                 "match_link": "1",
             },
             {
-                "uid": "3",
+                "orderID": "3",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "2",
                 "match_link": "",
@@ -489,13 +489,13 @@ def test_matching_sell_price_qt_diff_2_no_match():
     app.reset()
 
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -506,34 +506,34 @@ def test_matching_sell_price_qt_diff_2_no_match():
     app.init_db(db)
 
     order_in = {
-        "uid": "2",
+        "orderID": "2",
         "side": "buy",
         "type": "wood",
-        "quantity": "10",
-        "price": "10",
+        "quantity": 10,
+        "price": 10,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -552,13 +552,13 @@ def test_matching_sell_price_qt_diff_3_part_match():
     app.reset()
 
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -569,44 +569,44 @@ def test_matching_sell_price_qt_diff_3_part_match():
     app.init_db(db)
 
     order_in = {
-        "uid": "2",
+        "orderID": "2",
         "side": "buy",
         "type": "wood",
-        "quantity": "10",
-        "price": "10",
+        "quantity": 10,
+        "price": 10,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": False,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": False,
                 "split_link": "",
                 "match_link": "1",
             },
             {
-                "uid": "3",
+                "orderID": "3",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": True,
                 "split_link": "1",
                 "match_link": "",
@@ -624,13 +624,13 @@ def test_matching_sell_price_qt_diff_4__no_match():
     app.reset()
 
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -641,34 +641,34 @@ def test_matching_sell_price_qt_diff_4__no_match():
     app.init_db(db)
 
     order_in = {
-        "uid": "2",
+        "orderID": "2",
         "side": "buy",
         "type": "wood",
-        "quantity": "20",
-        "price": "10",
+        "quantity": 20,
+        "price": 10,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "20",
-                "price": "10",
+                "quantity": 20,
+                "price": 10,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -689,13 +689,13 @@ def test_matching_buy_price_qt_diff_1_no_match():
     app.reset()
 
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -706,34 +706,34 @@ def test_matching_buy_price_qt_diff_1_no_match():
     app.init_db(db)
 
     order_in = {
-        "uid": "2",
+        "orderID": "2",
         "side": "sell",
         "type": "wood",
-        "quantity": "20",
-        "price": "20",
+        "quantity": 20,
+        "price": 20,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "20",
-                "price": "20",
+                "quantity": 20,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -751,13 +751,13 @@ def test_matching_buy_price_qt_diff_2_part_match():
     app.reset()
 
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "20",
-                "price": "20",
+                "quantity": 20,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -768,44 +768,44 @@ def test_matching_buy_price_qt_diff_2_part_match():
     app.init_db(db)
 
     order_in = {
-        "uid": "2",
+        "orderID": "2",
         "side": "sell",
         "type": "wood",
-        "quantity": "10",
-        "price": "10",
+        "quantity": 10,
+        "price": 10,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": False,
                 "split_link": "",
                 "match_link": "2",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": False,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "3",
+                "orderID": "3",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "1",
                 "match_link": "",
@@ -823,13 +823,13 @@ def test_matching_buy_price_qt_diff_3_no_match():
     app.reset()
 
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "20",
-                "price": "10",
+                "quantity": 20,
+                "price": 10,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -840,34 +840,34 @@ def test_matching_buy_price_qt_diff_3_no_match():
     app.init_db(db)
 
     order_in = {
-        "uid": "2",
+        "orderID": "2",
         "side": "sell",
         "type": "wood",
-        "quantity": "10",
-        "price": "20",
+        "quantity": 10,
+        "price": 20,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "20",
-                "price": "10",
+                "quantity": 20,
+                "price": 10,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -885,13 +885,13 @@ def test_matching_buy_price_qt_diff_4_part_match():
     app.reset()
 
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -902,44 +902,44 @@ def test_matching_buy_price_qt_diff_4_part_match():
     app.init_db(db)
 
     order_in = {
-        "uid": "2",
+        "orderID": "2",
         "side": "sell",
         "type": "wood",
-        "quantity": "20",
-        "price": "10",
+        "quantity": 20,
+        "price": 10,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": False,
                 "split_link": "",
                 "match_link": "2",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": False,
                 "split_link": "",
                 "match_link": "1",
             },
             {
-                "uid": "3",
+                "orderID": "3",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "10",
+                "quantity": 10,
+                "price": 10,
                 "status": True,
                 "split_link": "2",
                 "match_link": "",
@@ -970,23 +970,23 @@ def test_matching_sell_qt_diff_buy_smaller_partlyFilled():
 
     app.reset()
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "20",
-                "price": "17",
+                "quantity": 20,
+                "price": 17,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -996,54 +996,54 @@ def test_matching_sell_qt_diff_buy_smaller_partlyFilled():
     app.init_db(db)
 
     order_in = {
-        "uid": "3",
+        "orderID": "3",
         "side": "sell",
         "type": "wood",
-        "quantity": "20",
-        "price": "20",
+        "quantity": 20,
+        "price": 20,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": False,
                 "split_link": "",
                 "match_link": "3",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "20",
-                "price": "17",
+                "quantity": 20,
+                "price": 17,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "3",
+                "orderID": "3",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": False,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "4",
+                "orderID": "4",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "2",
                 "match_link": "",
@@ -1060,23 +1060,23 @@ def test_matching_sell_qt_diff_buy_smaller_allFilled():
 
     app.reset()
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "15",
-                "price": "20",
+                "quantity": 15,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -1086,64 +1086,64 @@ def test_matching_sell_qt_diff_buy_smaller_allFilled():
     app.init_db(db)
 
     order_in = {
-        "uid": "3",
+        "orderID": "3",
         "side": "sell",
         "type": "wood",
-        "quantity": "20",
-        "price": "20",
+        "quantity": 20,
+        "price": 20,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": False,
                 "split_link": "",
                 "match_link": "3",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": False,
                 "split_link": "",
                 "match_link": "4",
             },
             {
-                "uid": "3",
+                "orderID": "3",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": False,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "4",
+                "orderID": "4",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": False,
                 "split_link": "3",
                 "match_link": "",
             },
             {
-                "uid": "5",
+                "orderID": "5",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "5",
-                "price": "20",
+                "quantity": 5,
+                "price": 20,
                 "status": True,
                 "split_link": "2",
                 "match_link": "",
@@ -1161,13 +1161,13 @@ def test_matching_sell_qt_diff_buy_bigger_allFilled():
 
     app.reset()
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "15",
-                "price": "20",
+                "quantity": 15,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -1177,44 +1177,44 @@ def test_matching_sell_qt_diff_buy_bigger_allFilled():
     app.init_db(db)
 
     order_in = {
-        "uid": "2",
+        "orderID": "2",
         "side": "sell",
         "type": "wood",
-        "quantity": "10",
-        "price": "20",
+        "quantity": 10,
+        "price": 20,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": False,
                 "split_link": "",
                 "match_link": "2",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": False,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "3",
+                "orderID": "3",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "5",
-                "price": "20",
+                "quantity": 5,
+                "price": 20,
                 "status": True,
                 "split_link": "1",
                 "match_link": "",
@@ -1233,23 +1233,23 @@ def test_matching_buy_qt_diff_buy_smaller_allFilled():
 
     app.reset()
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "15",
-                "price": "20",
+                "quantity": 15,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -1259,64 +1259,64 @@ def test_matching_buy_qt_diff_buy_smaller_allFilled():
     app.init_db(db)
 
     order_in = {
-        "uid": "3",
+        "orderID": "3",
         "side": "buy",
         "type": "wood",
-        "quantity": "20",
-        "price": "20",
+        "quantity": 20,
+        "price": 20,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": False,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": False,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "3",
+                "orderID": "3",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": False,
                 "split_link": "",
                 "match_link": "1",
             },
             {
-                "uid": "4",
+                "orderID": "4",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": False,
                 "split_link": "3",
                 "match_link": "2",
             },
             {
-                "uid": "5",
+                "orderID": "5",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "5",
-                "price": "20",
+                "quantity": 5,
+                "price": 20,
                 "status": True,
                 "split_link": "2",
                 "match_link": "",
@@ -1334,23 +1334,23 @@ def test_matching_buy_qt_diff_buy_bigger_allFilled():
 
     app.reset()
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "5",
-                "price": "20",
+                "quantity": 5,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -1360,54 +1360,54 @@ def test_matching_buy_qt_diff_buy_bigger_allFilled():
     app.init_db(db)
 
     order_in = {
-        "uid": "3",
+        "orderID": "3",
         "side": "buy",
         "type": "wood",
-        "quantity": "15",
-        "price": "20",
+        "quantity": 15,
+        "price": 20,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": False,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "5",
-                "price": "20",
+                "quantity": 5,
+                "price": 20,
                 "status": False,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "3",
+                "orderID": "3",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": False,
                 "split_link": "",
                 "match_link": "1",
             },
             {
-                "uid": "4",
+                "orderID": "4",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "5",
-                "price": "20",
+                "quantity": 5,
+                "price": 20,
                 "status": False,
                 "split_link": "3",
                 "match_link": "2",
@@ -1425,23 +1425,23 @@ def test_matching_buy_qt_diff_buy_bigger_partlyFilled():
 
     app.reset()
     db = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "5",
-                "price": "20",
+                "quantity": 5,
+                "price": 20,
                 "status": True,
                 "split_link": "",
                 "match_link": "",
@@ -1451,64 +1451,64 @@ def test_matching_buy_qt_diff_buy_bigger_partlyFilled():
     app.init_db(db)
 
     order_in = {
-        "uid": "3",
+        "orderID": "3",
         "side": "buy",
         "type": "wood",
-        "quantity": "20",
-        "price": "20",
+        "quantity": 20,
+        "price": 20,
         "status": True,
         "split_link": "",
         "match_link": "",
     }
 
     db_expected = {
-        "orders": [
+        "Items": [
             {
-                "uid": "1",
+                "orderID": "1",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": False,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "2",
+                "orderID": "2",
                 "side": "sell",
                 "type": "wood",
-                "quantity": "5",
-                "price": "20",
+                "quantity": 5,
+                "price": 20,
                 "status": False,
                 "split_link": "",
                 "match_link": "",
             },
             {
-                "uid": "3",
+                "orderID": "3",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "10",
-                "price": "20",
+                "quantity": 10,
+                "price": 20,
                 "status": False,
                 "split_link": "",
                 "match_link": "1",
             },
             {
-                "uid": "4",
+                "orderID": "4",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "5",
-                "price": "20",
+                "quantity": 5,
+                "price": 20,
                 "status": False,
                 "split_link": "3",
                 "match_link": "2",
             },
             {
-                "uid": "5",
+                "orderID": "5",
                 "side": "buy",
                 "type": "wood",
-                "quantity": "5",
-                "price": "20",
+                "quantity": 5,
+                "price": 20,
                 "status": True,
                 "split_link": "4",
                 "match_link": "",
