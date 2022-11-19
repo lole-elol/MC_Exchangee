@@ -1,5 +1,7 @@
 {
     "python.linting.flake8Enabled": true,
     "python.linting.enabled": true,
-    "python.formatting.autopep8Path": "black"
+    "python.formatting.provider": "black",
+    "python.formatting.blackPath": "black",
+    "python.analysis.typeCheckingMode": "basic"
 }
