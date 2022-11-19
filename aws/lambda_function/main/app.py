@@ -1,10 +1,9 @@
 import json
 
+
 # import requests
 
 def lambda_handler(event, context):
- 
-
     return {
         "statusCode": 200,
         "body": json.dumps({
@@ -12,3 +11,6 @@ def lambda_handler(event, context):
             # "location": ip.text.replace("\n", "")
         }),
     }
+
+
+lambda_handler("a",None)
