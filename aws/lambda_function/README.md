@@ -24,3 +24,15 @@
 
 - look for cheapest offer(s) until demand is met (maybe multiple small orders -> focus on cheapest buyer price)
 - you may find cheaper offers than your valuation/ask price
+
+
+## Order 
+
+    { 
+      "uid": str,
+      "side": str,
+      "type": str,
+      "quantity": int,
+      "price": int,
+      "status": bool 
+      }
