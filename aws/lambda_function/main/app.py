@@ -64,6 +64,8 @@ def matching(in_order):
         # match case -> tempdb.append
         # non match case -> match = False
 
+        #### Optimise matching ###
+
         # sort temp tmpdb
         child = None
         firstRun = True
@@ -184,7 +186,6 @@ def matching(in_order):
                     if firstRun:
                         write_to_order_book(in_order)
 
-
             elif not in_isBuyOrder:
                 # sell order
                 if in_order["price"] == order["price"]:
@@ -272,7 +273,6 @@ def matching(in_order):
                         write_to_order_book(in_order)
                         write_to_order_book(order)
 
-
                     elif in_order["quantity"] < order["quantity"]:
                         # sell qt < buy qt -> buy split
 
@@ -309,7 +309,6 @@ def matching(in_order):
                     if firstRun:
                         write_to_order_book(in_order)
             firstRun = False
-
 
 
 # lambda_handler("a", None)
