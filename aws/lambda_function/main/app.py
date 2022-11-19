@@ -139,6 +139,8 @@ def matching(in_order):
                         write_to_order_book(diff_sell)
                         write_to_order_book(in_order)
                         write_to_order_book(order)
+
+
                     elif in_order["quantity"] < order["quantity"]:
                         # sell qt < buy qt -> buy split
 

@@ -1678,3 +1678,5 @@ def test_matching_buy_qt_diff_buy_bigger_partlyFilled():
                 assert el["status"] == el_a["status"]
                 assert el["split_link"] == el_a["split_link"]
                 assert el["match_link"] == el_a["match_link"]
+
+test_matching_sell_qt_diff_buy_smaller_partlyFilled()
