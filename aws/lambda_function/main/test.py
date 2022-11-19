@@ -752,8 +752,6 @@ def test_matching_buy_qt_diff_buy_bigger_partlyFilled():
 
     assert app.read_db() == db_expected
 
-
-
 ###
 
 
