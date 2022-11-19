@@ -129,7 +129,7 @@ def create_orders_table(dynamodb):
 
 
 
-
+import uuid
 def generateTestData():
     with table.batch_writer() as writer:
         for i in range(2000):
@@ -148,6 +148,8 @@ def generateTestData():
                 "type": random.choice(["BUY", "SELL"]),
                 "quantity": random.choice(range(1, 100)),
                 "price": Decimal(str(random.uniform(10.5, 75.5))),
+                'balanced' : 0,
+                'collected' : 0
             }
             # print(order)
             writer.put_item(Item=order)

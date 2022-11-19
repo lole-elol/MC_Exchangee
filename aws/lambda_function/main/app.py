@@ -3,21 +3,19 @@ import boto3
 import os
 from boto3.dynamodb.conditions import Key
 import botocore
+import uuid
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "db.json")
 DB = boto3.resource("dynamodb", region_name="eu-central-1")
 TABLE = DB.Table("orders")
 BALANCE = DB.Table("users")
 
-# import requests
-# def matching(in_order):
-#     pass
 SUCCESS = {"statusCode": 200,
-        "body": json.dumps(
-            {
-                "message": "Success",
-            }
-        )}
+    "body": json.dumps(
+        {
+            "message": "Success",
+        }
+    )}
 
 
 FAILURE_DEL = {"statusCode": 400,
@@ -217,8 +215,8 @@ def get_unbalanced_and_matched_orders():
 def delete_order(primaryKey,sortKey):
     TABLE.delete_item(TableName="orders", Key={'orderID':primaryKey,'side':sortKey}, ConditionExpression="attribute_exists(orderID)")
 
-def get_order(primaryKey):
-    response = TABLE.get_item(Key={'orderID':primaryKey})
+def get_order(orderID):
+    response = TABLE.get_item(Key={'orderID':orderID})
     if 'Item' in response:
         res = [{**i,'price':float(i['price']),'quantity':float(i['quantity']),'status':int(i['status'])} for i in response['Item']]
         return res
@@ -237,6 +235,7 @@ def get_all_unmatched_orders():
         return 0
 
 def matching(in_order):
+    in_order['orderID'] = str(uuid.uuid4())
     in_isBuyOrder = True if in_order["side"] == "buy" else False
 
     response = TABLE.query(
@@ -254,18 +253,7 @@ def matching(in_order):
         response.sort(  # sort based on the unit price
             key=lambda x: x.get("price"), reverse=False if in_isBuyOrder else True
         )
-        # print("response: ", response)
 
-        # match = True
-        ### while match:
-
-        # for order in response
-        # ........
-        # match case -> tempdb.append
-        # non match case -> match = False
-
-        # sort temp tmpdb
-        # child = None
         firstRun = True
         for order in response:
             if in_isBuyOrder:
@@ -282,10 +270,8 @@ def matching(in_order):
                         # new child order
                         diff_buy["quantity"] -= order["quantity"]
                         diff_buy["split_link"] = diff_buy["orderID"]
-                        diff_buy["orderID"] = str(
-                            max(int(diff_buy["orderID"]), int(in_order["orderID"])) + 1
-                        )  # TODO change to uid later + remove max
-                        # child = diff_buy["split_link"]
+                        diff_buy["orderID"] = str(uuid.uuid4())
+                        
                         write_to_order_book(diff_buy)
                         write_to_order_book(in_order)
                         write_to_order_book(order)
@@ -307,11 +293,7 @@ def matching(in_order):
                         # new child order_
                         diff_sell["quantity"] -= in_order["quantity"]
                         diff_sell["split_link"] = diff_sell["orderID"]
-                        diff_sell["orderID"] = str(
-                            max(int(diff_sell["orderID"]), int(in_order["orderID"])) + 1
-                        )  # TODO change to uid later
-
-                        # child = diff_sell["split_link"]
+                        diff_sell["orderID"] = str(uuid.uuid4())
                         write_to_order_book(diff_sell)
                         write_to_order_book(in_order)
                         write_to_order_book(order)
@@ -338,11 +320,7 @@ def matching(in_order):
                         # new child order
                         diff_buy["quantity"] -= order["quantity"]
                         diff_buy["split_link"] = diff_buy["orderID"]
-                        diff_buy["orderID"] = str(
-                            max(int(diff_buy["orderID"]), int(in_order["orderID"])) + 1
-                        )  # TODO change to uid later + remove max
-
-                        # child = diff_buy["split_link"]
+                        diff_buy["orderID"] = str(uuid.uuid4())
                         write_to_order_book(diff_buy)
                         write_to_order_book(in_order)
                         write_to_order_book(order)
@@ -358,9 +336,7 @@ def matching(in_order):
                         # new child order_
                         diff_sell["quantity"] -= in_order["quantity"]
                         diff_sell["split_link"] = diff_sell["orderID"]
-                        diff_sell["orderID"] = str(
-                            max(int(diff_sell["orderID"]), int(in_order["orderID"])) + 1
-                        )  # TODO change to uid later
+                        diff_sell["orderID"] = str(uuid.uuid4())
 
                         # child = diff_sell["split_link"]
                         write_to_order_book(diff_sell)
@@ -427,9 +403,7 @@ def matching(in_order):
                         # new child order_
                         diff_buy["quantity"] -= in_order["quantity"]
                         diff_buy["split_link"] = diff_buy["orderID"]
-                        diff_buy["orderID"] = str(
-                            max(int(diff_buy["orderID"]), int(in_order["orderID"])) + 1
-                        )  # TODO change to uid later
+                        diff_buy["orderID"] = str(uuid.uuid4())
 
                         # save split link id in child
                         # child = diff_buy["split_link"]
@@ -483,9 +457,7 @@ def matching(in_order):
                         # new child order_
                         diff_buy["quantity"] -= in_order["quantity"]
                         diff_buy["split_link"] = diff_buy["orderID"]
-                        diff_buy["orderID"] = str(
-                            max(int(diff_buy["orderID"]), int(in_order["orderID"])) + 1
-                        )  # TODO change to uid later
+                        diff_buy["orderID"] = str(uuid.uuid4())
 
                         # save split link id in child
                         # child = diff_buy["split_link"]
