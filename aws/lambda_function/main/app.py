@@ -44,7 +44,10 @@ def success(order):
 def lambda_handler(event, context):
     requestPath = event['path'].split('/hackatum-BloombergBackend-1znJQelc3f38')[-1]
     print('requestPath:',requestPath,'Method:',event["httpMethod"],'Body:',event["body"],'QueryStringParameters:',event['queryStringParameters'])
-    event["body"] = json.loads(event["body"])
+
+    # Technically better via TryExcept but I can't remember the exact Error
+    # event["body"] = json.loads(event["body"]) if event['body'] is not None else None
+    
     if requestPath == "/order":
         if event["httpMethod"] == "POST":
             if event["body"]["side"] == "buy" or event["body"]["side"] == "sell":
