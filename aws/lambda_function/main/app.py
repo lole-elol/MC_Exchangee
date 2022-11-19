@@ -8,6 +8,8 @@ import string
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "db.json")
 DB = boto3.resource("dynamodb", region_name="eu-central-1")
+DBCLIENT = boto3.client("dynamodb", region_name="eu-central-1")
+
 TABLE = DB.Table("orders")
 BALANCE = DB.Table("users")
 
@@ -240,6 +242,7 @@ def generateUID():
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(12))
 
 
+
 def matching(in_order):
     in_order['orderID'] = generateUID()
     in_isBuyOrder = True if in_order["side"] == "buy" else False
@@ -261,7 +264,9 @@ def matching(in_order):
         )
 
         firstRun = True
-        
+        putRequests = []
+        if not response:
+            putRequests.append(in_order)
         for order in response:
             if in_isBuyOrder:
                 # buy order
@@ -278,10 +283,9 @@ def matching(in_order):
                         diff_buy["quantity"] -= order["quantity"]
                         diff_buy["split_link"] = diff_buy["orderID"]
                         diff_buy["orderID"] = generateUID()
-                        
-                        write_to_order_book(diff_buy)
-                        write_to_order_book(in_order)
-                        write_to_order_book(order)
+                        putRequests.append(diff_buy)
+                        putRequests.append(in_order)
+                        putRequests.append(order)
 
                         in_order = diff_buy.copy()
                         # in_order["orderID"] = str(
@@ -301,17 +305,17 @@ def matching(in_order):
                         diff_sell["quantity"] -= in_order["quantity"]
                         diff_sell["split_link"] = diff_sell["orderID"]
                         diff_sell["orderID"] = generateUID()
-                        write_to_order_book(diff_sell)
-                        write_to_order_book(in_order)
-                        write_to_order_book(order)
+                        putRequests.append(diff_sell)
+                        putRequests.append(in_order)
+                        putRequests.append(order)
 
                     else:
                         # buy qt = sell qt
                         in_order["match_link"] = order["orderID"]
                         order["status"], in_order["status"] = 0, 0
 
-                        write_to_order_book(in_order)
-                        write_to_order_book(order)
+                        putRequests.append(in_order)
+                        putRequests.append(order)
 
                 elif in_order["price"] > order["price"]:
                     # buy order price > sell order
@@ -328,9 +332,9 @@ def matching(in_order):
                         diff_buy["quantity"] -= order["quantity"]
                         diff_buy["split_link"] = diff_buy["orderID"]
                         diff_buy["orderID"] = generateUID()
-                        write_to_order_book(diff_buy)
-                        write_to_order_book(in_order)
-                        write_to_order_book(order)
+                        putRequests.append(diff_buy)
+                        putRequests.append(in_order)
+                        putRequests.append(order)
 
                     elif in_order["quantity"] < order["quantity"]:
                         # buy qt < sell qt -> sell split
@@ -346,9 +350,9 @@ def matching(in_order):
                         diff_sell["orderID"] = generateUID()
 
                         # child = diff_sell["split_link"]
-                        write_to_order_book(diff_sell)
-                        write_to_order_book(in_order)
-                        write_to_order_book(order)
+                        putRequests.append(diff_sell)
+                        putRequests.append(in_order)
+                        putRequests.append(order)
 
                     else:
                         # buy qt = sell qt
@@ -356,16 +360,16 @@ def matching(in_order):
                         order["status"], in_order["status"] = 0, 0
                         in_order["price"] = order["price"]
 
-                        write_to_order_book(in_order)
-                        write_to_order_book(order)
+                        putRequests.append(in_order)
+                        putRequests.append(order)
                 else:
                     # buy order price < sell order
                     # if child is not None:
                     #     if in_order["split_link"] != child:
-                    #         write_to_order_book(in_order)
+                    #         putRequests.append(in_order)
                     # else:
                     if firstRun:
-                        write_to_order_book(in_order)
+                        putRequests.append(in_order)
 
             elif not in_isBuyOrder:
                 # sell order
@@ -388,9 +392,9 @@ def matching(in_order):
                         # save split link id in child
                         # child = diff_sell["split_link"]
 
-                        write_to_order_book(diff_sell)  #
-                        write_to_order_book(in_order)  # replaces existing entry
-                        write_to_order_book(order)  # replaces existing entry
+                        putRequests.append(diff_sell)  #
+                        putRequests.append(in_order)  # replaces existing entry
+                        putRequests.append(order)  # replaces existing entry
 
                         in_order = diff_sell.copy()
                         # in_order["orderID"] = str(
@@ -415,17 +419,17 @@ def matching(in_order):
                         # save split link id in child
                         # child = diff_buy["split_link"]
 
-                        write_to_order_book(diff_buy)
-                        write_to_order_book(order)
-                        write_to_order_book(in_order)
+                        putRequests.append(diff_buy)
+                        putRequests.append(order)
+                        putRequests.append(in_order)
 
                     else:
                         # buy qt = sell qt
                         order["match_link"] = in_order["orderID"]
                         order["status"], in_order["status"] = 0, 0
 
-                        write_to_order_book(in_order)
-                        write_to_order_book(order)
+                        putRequests.append(in_order)
+                        putRequests.append(order)
 
                 elif in_order["price"] < order["price"]:
                     # sell order price < buy order
@@ -448,9 +452,9 @@ def matching(in_order):
                         # save split link id in child
                         # child = diff_sell["split_link"]
 
-                        write_to_order_book(diff_sell)
-                        write_to_order_book(in_order)
-                        write_to_order_book(order)
+                        putRequests.append(diff_sell)
+                        putRequests.append(in_order)
+                        putRequests.append(order)
 
                     elif in_order["quantity"] < order["quantity"]:
                         # sell qt < buy qt -> buy split
@@ -469,9 +473,9 @@ def matching(in_order):
                         # save split link id in child
                         # child = diff_buy["split_link"]
 
-                        write_to_order_book(diff_buy)
-                        write_to_order_book(in_order)
-                        write_to_order_book(order)
+                        putRequests.append(diff_buy)
+                        putRequests.append(in_order)
+                        putRequests.append(order)
 
                     else:
                         # buy qt = sell qt
@@ -479,14 +483,43 @@ def matching(in_order):
                         order["status"], in_order["status"] = 0, 0
                         order["price"] = in_order["price"]
 
-                        write_to_order_book(in_order)
-                        write_to_order_book(order)
+                        putRequests.append(in_order)
+                        putRequests.append(order)
 
                 else:
                     if firstRun:
-                        write_to_order_book(in_order)
+                        putRequests.append(in_order)
             firstRun = False
+            if len(putRequests) > 21:
+                makeBatchPutRequests(putRequests)
+                putRequests = []
+        if putRequests:
+            makeBatchPutRequests(putRequests)
 
+
+def makeBatchPutRequests(requests):
+    requests = [TABLE.new_item(attrs=i) for i in requests]
+    batch_list = TABLE.new_batch_write_list()
+    batch_list.add_batch(TABLE, puts=items)
+    print({'orders':[{'PutRequest': {'Item': i}} for i in requests]})
+    print({'orders':[{'PutRequest': {'Item': i}} for i in requests]})
+    [{**i,'price':float(i['price']),'quantity':float(i['quantity']),'status':int(i['status'])} for i in response['Items']]
+    DB.batch_write_item(RequestItems={'orders':[{'PutRequest': {'Item': k: {} for k,v in i}} for i in requests]})
+
+
+ord =  {
+            "orderID": "3",
+            "side": "sell",
+            "type": "wood",
+            "quantity": 23,
+            "price": 10,
+            "status": 0,
+            "split_link": "",
+            "match_link": "",
+            'balance' :0,
+            'userCollected':0
+        }
+matching(ord)
 
 def reset():
     db = read_db()
