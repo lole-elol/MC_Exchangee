@@ -19,11 +19,11 @@ SUCCESS = {"statusCode": 200,
 
 
 FAILURE_DEL = {"statusCode": 400,
-                "body": json.dumps(
-                    {
-                        "message": "Order cannot be deleted. It does not exist",
-                    }
-                )}
+    "body": json.dumps(
+        {
+            "message": "Order cannot be deleted. It does not exist",
+        }
+    )}
 
 FAILURE = {"statusCode": 400,
                 "body": json.dumps(
@@ -481,25 +481,7 @@ def matching(in_order):
             firstRun = False
 
 
-# lambda_handler("a", None)
-
-# eventBuy = {"uid": 123, "side": "BUY", "type": "ROCK", "quantity": 10, "price": 1000}
-
-#    {
-#       "orderID": STR ----> PARTITION K
-#       "uid": STR,
-#       "side": STR, -> "SELL/BUY" ----> SORT KEY
-#       "type": str, -> ['rock','stone','dirt','gold','diamond']
-#       "quantity": INT,
-#       "price": DECIMAL,
-#       "status": bool,
-#       "split_link": str,
-#       "match_link": str
-#       }
-
-
 def reset():
-
     db = read_db()
     for item in db:
         print(item["orderID"], type(item["orderID"]))
