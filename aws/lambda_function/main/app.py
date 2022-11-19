@@ -66,9 +66,8 @@ def matching(in_order):
 
         # sort temp tmpdb
         child = None
-
+        firstRun = True
         for order in response:
-
             if in_isBuyOrder:
                 # buy order
                 if in_order["price"] == order["price"]:
@@ -86,10 +85,17 @@ def matching(in_order):
                         diff_buy["orderID"] = str(
                             max(int(diff_buy["orderID"]), int(in_order["orderID"])) + 1
                         )  # TODO change to uid later + remove max
-                        child = diff_buy["split_link"]
+                        # child = diff_buy["split_link"]
                         write_to_order_book(diff_buy)
                         write_to_order_book(in_order)
                         write_to_order_book(order)
+
+                        in_order = diff_buy.copy()
+                        # in_order["orderID"] = str(
+                        #     max(int(diff_sell["orderID"]), int(in_order["orderID"])) + 1
+                        # )
+                        diff_buy["match_link"] = ""
+                        diff_buy["status"] = 1
 
                     elif in_order["quantity"] < order["quantity"]:
                         # buy qt < sell qt -> sell split
@@ -105,7 +111,7 @@ def matching(in_order):
                             max(int(diff_sell["orderID"]), int(in_order["orderID"])) + 1
                         )  # TODO change to uid later
 
-                        child = diff_sell["split_link"]
+                        # child = diff_sell["split_link"]
                         write_to_order_book(diff_sell)
                         write_to_order_book(in_order)
                         write_to_order_book(order)
@@ -136,7 +142,7 @@ def matching(in_order):
                             max(int(diff_buy["orderID"]), int(in_order["orderID"])) + 1
                         )  # TODO change to uid later + remove max
 
-                        child = diff_buy["split_link"]
+                        # child = diff_buy["split_link"]
                         write_to_order_book(diff_buy)
                         write_to_order_book(in_order)
                         write_to_order_book(order)
@@ -156,7 +162,7 @@ def matching(in_order):
                             max(int(diff_sell["orderID"]), int(in_order["orderID"])) + 1
                         )  # TODO change to uid later
 
-                        child = diff_sell["split_link"]
+                        # child = diff_sell["split_link"]
                         write_to_order_book(diff_sell)
                         write_to_order_book(in_order)
                         write_to_order_book(order)
@@ -171,11 +177,13 @@ def matching(in_order):
                         write_to_order_book(order)
                 else:
                     # buy order price < sell order
-                    if child is not None:
-                        if in_order["split_link"] != child:
-                            write_to_order_book(in_order)
-                    else:
+                    # if child is not None:
+                    #     if in_order["split_link"] != child:
+                    #         write_to_order_book(in_order)
+                    # else:
+                    if firstRun:
                         write_to_order_book(in_order)
+
 
             elif not in_isBuyOrder:
                 # sell order
@@ -196,16 +204,16 @@ def matching(in_order):
                         )
 
                         # save split link id in child
-                        child = diff_sell["split_link"]
+                        # child = diff_sell["split_link"]
 
                         write_to_order_book(diff_sell)  #
                         write_to_order_book(in_order)  # replaces existing entry
                         write_to_order_book(order)  # replaces existing entry
 
                         in_order = diff_sell.copy()
-                        in_order["orderID"] = str(
-                            max(int(diff_sell["orderID"]), int(in_order["orderID"])) + 1
-                        )
+                        # in_order["orderID"] = str(
+                        #     max(int(diff_sell["orderID"]), int(in_order["orderID"])) + 1
+                        # )
                         diff_sell["match_link"] = ""
                         diff_sell["status"] = 1
 
@@ -225,11 +233,11 @@ def matching(in_order):
                         )  # TODO change to uid later
 
                         # save split link id in child
-                        child = diff_buy["split_link"]
+                        # child = diff_buy["split_link"]
 
                         write_to_order_book(diff_buy)
-                        write_to_order_book(in_order)
                         write_to_order_book(order)
+                        write_to_order_book(in_order)
 
                     else:
                         # buy qt = sell qt
@@ -258,7 +266,7 @@ def matching(in_order):
                         )
 
                         # save split link id in child
-                        child = diff_sell["split_link"]
+                        # child = diff_sell["split_link"]
 
                         write_to_order_book(diff_sell)
                         write_to_order_book(in_order)
@@ -282,7 +290,7 @@ def matching(in_order):
                         )  # TODO change to uid later
 
                         # save split link id in child
-                        child = diff_buy["split_link"]
+                        # child = diff_buy["split_link"]
 
                         write_to_order_book(diff_buy)
                         write_to_order_book(in_order)
@@ -298,12 +306,10 @@ def matching(in_order):
                         write_to_order_book(order)
 
                 else:
-                    # sell order price > buy order
-                    if child is not None:
-                        if in_order["split_link"] != child:
-                            write_to_order_book(in_order)
-                    else:
+                    if firstRun:
                         write_to_order_book(in_order)
+            firstRun = False
+
 
 
 # lambda_handler("a", None)
