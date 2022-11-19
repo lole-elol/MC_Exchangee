@@ -1,7 +1,8 @@
 {
-    "python.linting.flake8Enabled": true,
-    "python.linting.enabled": true,
-    "python.formatting.provider": "black",
-    "python.formatting.blackPath": "black",
-    "python.analysis.typeCheckingMode": "basic"
+  "python.linting.flake8Enabled": true,
+  "python.linting.enabled": true,
+  "python.formatting.provider": "black",
+  "python.formatting.blackPath": "black",
+  "python.analysis.typeCheckingMode": "basic",
+  "python.linting.flake8Args": ["--ignore=E303,E501"]
 }
