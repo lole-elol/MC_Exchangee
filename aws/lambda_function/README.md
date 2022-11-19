@@ -24,3 +24,7 @@
 
 - look for cheapest offer(s) until demand is met (maybe multiple small orders -> focus on cheapest buyer price)
 - you may find cheaper offers than your valuation/ask price
+
+
+## Possible Additional Features
+- Add logic for choosing between limit prices, market price, stop price 
