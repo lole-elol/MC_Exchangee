@@ -54,7 +54,7 @@ def lambda_handler(event, context):
             # if event["body"]["action"] == "buy":
             order = event["body"]
             try:
-                delete_order(primaryKey=order['orderID'],sortKey=order['side'])
+                delete_order(orderID=order['orderID'],sortKey=order['side'])
             # Postponed
             # except: 
             #     return FAILURE_DEL
@@ -67,7 +67,7 @@ def lambda_handler(event, context):
                 
         elif event["httpMethod"] == "GET": # when order is return set collected field True
             order = event["body"]
-            if to_ret := get_order(primaryKey=order['orderID']):
+            if to_ret := get_order(orderID=order['orderID']):
                 return success(to_ret)
             else:
                 return FAILURE
@@ -139,7 +139,7 @@ def balance():
         update_user_balance(user['ownerID'],newUserBalance[user['ownerID']] + currentUser['balance'])
     
 
-def update_order_balanced(orderID,side):
+def update_order_balanced(orderID, side):
     TABLE.update_item(
         Key={
             'ownerID': orderID,
@@ -154,7 +154,7 @@ def update_order_balanced(orderID,side):
     )
 
 
-def update_user_balance(ownerID,balance):
+def update_user_balance(ownerID, balance):
     BALANCE.update_item(
         Key={
             'ownerID': ownerID,
@@ -168,7 +168,6 @@ def update_user_balance(ownerID,balance):
     )
 
 def write_to_order_book(order) -> None:
-
     TABLE.put_item(TableName="orders", Item=order)
 
 def get_all_user_orders(ownerID):
@@ -214,8 +213,8 @@ def get_unbalanced_and_matched_orders():
 # def edit_order(oprimary_key, order):
 #     TABLE.update_item(TableName="orders", Key=oprimary_key, UpdateExpression=order)
 
-def delete_order(primaryKey,sortKey):
-    TABLE.delete_item(TableName="orders", Key={'orderID':primaryKey,'side':sortKey}, ConditionExpression="attribute_exists(orderID)")
+def delete_order(orderID, sortKey):
+    TABLE.delete_item(TableName="orders", Key={'orderID':orderID, 'side':sortKey}, ConditionExpression="attribute_exists(orderID)")
 
 def get_order(orderID):
     response = TABLE.get_item(Key={'orderID':orderID})
@@ -262,6 +261,7 @@ def matching(in_order):
         )
 
         firstRun = True
+        
         for order in response:
             if in_isBuyOrder:
                 # buy order
