@@ -46,11 +46,32 @@
 
 # Test Cases
 - 1:1 match (BUY -> SELL; SELL -> BUY) (same price + qty)
+  - sell -> buy 1:1 --> match
+  - buy -> sell 1:1 --> match
+
 	- price different, qty same
 		- sell x, with price > x; buy with price < x
+    - buy price x -> sell price y < x --> match
+    - buy price x -> sell price y > x --> no match
+
+    - sell price x -> buy price y > x --> match
+    - sell price x -> buy price y < x --> no match
+  
 	- price same, qty different (INCLUDES SPLIT CASES)
 		- 1:n match (BUY -> )
 	- price different, qty different (INCLUDES SPLIT CASES)
 
+    -  sell x qt y -> buy u > x qt v > y 
+    -  sell x qt y -> buy u < x qt v < y
 
-- 0:0 match (preis teurer als )
+    -  sell x qt y -> buy u > x qt v < y
+    -  sell x qt y -> buy u < x qt v > y
+
+
+    -  buy x qt y -> sell u > x qt v > y 
+    -  buy x qt y -> sell u < x qt v < y 
+
+    -  buy x qt y -> sell u > x qt v < y 
+    -  buy x qt y -> sell u < x qt v > y 
+
+- 0:0 match (preis teurer als 
