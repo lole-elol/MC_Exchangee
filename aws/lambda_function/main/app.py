@@ -41,8 +41,8 @@ def success(order):
     
 
 def lambda_handler(event, context):
-    print(event)
     requestPath = event['path'].split('/hackatum-BloombergBackend-1znJQelc3f38')[-1]
+    print('requestPath:',requestPath,'Method:',event["httpMethod"],'Body:',event["body"],'QueryStringParameters:',event['queryStringParameters'])
     if requestPath == "/order":
         if event["httpMethod"] == "POST":
             if event["body"]["action"] == "buy" or event["body"]["action"] == "sell":
@@ -98,7 +98,12 @@ def lambda_handler(event, context):
 
     elif requestPath == "/balance":
         if event["httpMethod"] == "GET":
-            pass
+            user = event["body"]
+            if to_ret := get_user(user[""]):
+                return success(to_ret)
+            else:
+                return FAILURE
+                
 
     else:
         print("no viable path")
@@ -114,28 +119,53 @@ def lambda_handler(event, context):
 
 def balance():
     # claculate balance of users
-    usersUnbalanced = {}
+    newUserBalance = {}
     orders = get_unbalanced_and_matched_orders()
     for order in orders:
-        order["balanced"] = 1
-        if order['ownerID'] in usersUnbalanced:
+        update_order_balanced(order['orderID'],order['side']) # set for all orders "balanced" to 1
+        if order['ownerID'] in newUserBalance:
             if order["side"] == "buy":
-                usersUnbalanced[order['ownerID']] -= order['price'] * order['quantity']
-            else: 
-                usersUnbalanced[order['ownerID']] += order['price'] * order['quantity']
+                newUserBalance[order['ownerID']] -= order['price'] * order['quantity']
+            else:
+                newUserBalance[order['ownerID']] += order['price'] * order['quantity']
         else:
             if order["side"] == "buy":
-                usersUnbalanced[order['ownerID']] = -order['price'] * order['quantity']
-            else: 
-                usersUnbalanced[order['ownerID']] = order['price'] * order['quantity']
-    
-    for user in usersUnbalanced:
+                newUserBalance[order['ownerID']] = -order['price'] * order['quantity']
+            else:
+                newUserBalance[order['ownerID']] = order['price'] * order['quantity']
+        
+    for user in newUserBalance: # update all users
         currentUser = get_user(user['ownerID'])
-        update_user_balance(user['ownerID'],usersUnbalanced[order['ownerID']]+currentUser['balance'])
-
-    users = BALANCE.scan()["Items"]
+        update_user_balance(user['ownerID'],newUserBalance[user['ownerID']] + currentUser['balance'])
     
-    pass
+
+def update_order_balanced(orderID,side):
+    TABLE.update_item(
+        Key={
+            'ownerID': orderID,
+            'side': side,
+        },
+        UpdateExpression="SET balanced = :b",
+        ConditionExpression="attribute_exists(orderID)",
+        ExpressionAttributeValues={
+            ':b': 1,
+        },
+        ReturnValues="NONE"
+    )
+
+
+def update_user_balance(ownerID,balance):
+    BALANCE.update_item(
+        Key={
+            'ownerID': ownerID,
+        },
+        UpdateExpression="SET balance = :b",
+        ConditionExpression="attribute_exists(ownerID)",
+        ExpressionAttributeValues={
+            ':b': balance,
+        },
+        ReturnValues="NONE"
+    )
 
 def write_to_order_book(order) -> None:
 
@@ -147,12 +177,13 @@ def get_all_user_orders(ownerID):
         KeyConditionExpression=Key("ownerID").eq(ownerID),
     )
     if 'Items' in response:
-        return response['Items']
+        res = [{**i,'price':float(i['price']),'quantity':float(i['quantity']),'status':int(i['status'])} for i in response['Items']]
+        return res
     else:
         return 0
 
 def get_user(primaryKey):
-    result = BALANCE.get_item(Key={'userID':primaryKey})
+    result = BALANCE.get_item(Key={'ownerID':primaryKey})
     if 'Item' in result:
         return result['Item']
     else:
@@ -164,7 +195,8 @@ def get_uncollected_user_orders(ownerID):
         KeyConditionExpression=Key("ownerID").eq(ownerID) & Key("userCollected").eq(0),
     )
     if 'Items' in response:
-        return response['Items']
+        res = [{**i,'price':float(i['price']),'quantity':float(i['quantity']),'status':int(i['status'])} for i in response['Items']]
+        return res
     else:
         return 0
 
@@ -174,7 +206,8 @@ def get_unbalanced_and_matched_orders():
         KeyConditionExpression=Key("balanced").eq(0) & Key("status").eq(1), #get all unbalanced and matched orders
     )
     if 'Items' in response:
-        return response['Items']
+        res = [{**i,'price':float(i['price']),'quantity':float(i['quantity']),'status':int(i['status'])} for i in response['Items']]
+        return res
     else:
         return 0
 
@@ -185,9 +218,10 @@ def delete_order(primaryKey,sortKey):
     TABLE.delete_item(TableName="orders", Key={'orderID':primaryKey,'side':sortKey}, ConditionExpression="attribute_exists(orderID)")
 
 def get_order(primaryKey):
-    result = TABLE.get_item(Key={'orderID':primaryKey})
-    if 'Item' in result:
-        return result['Item']
+    response = TABLE.get_item(Key={'orderID':primaryKey})
+    if 'Item' in response:
+        res = [{**i,'price':float(i['price']),'quantity':float(i['quantity']),'status':int(i['status'])} for i in response['Item']]
+        return res
     else:
         return 0
 
@@ -197,11 +231,10 @@ def get_all_unmatched_orders():
         KeyConditionExpression=Key("status").eq(1),
     )
     if 'Items' in response:
-        return response['Items']
+        res = [{**i,'price':float(i['price']),'quantity':float(i['quantity']),'status':int(i['status'])} for i in response['Items']]
+        return res
     else:
         return 0
-
-
 
 def matching(in_order):
     in_isBuyOrder = True if in_order["side"] == "buy" else False
@@ -478,7 +511,7 @@ def matching(in_order):
 
 # lambda_handler("a", None)
 
-eventBuy = {"uid": 123, "side": "BUY", "type": "ROCK", "quantity": 10, "price": 1000}
+# eventBuy = {"uid": 123, "side": "BUY", "type": "ROCK", "quantity": 10, "price": 1000}
 
 #    {
 #       "orderID": STR ----> PARTITION K

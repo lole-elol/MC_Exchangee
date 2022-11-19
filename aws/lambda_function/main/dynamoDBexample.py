@@ -8,14 +8,14 @@ def create_users_table(dynamodb):
     table = dynamodb.create_table(
         TableName="users",
         KeySchema=[
-            {"AttributeName": "userID", "KeyType": "HASH"}        ],
+            {"AttributeName": "ownerID", "KeyType": "HASH"}        ],
         AttributeDefinitions=[
-            {"AttributeName": "userID", "AttributeType": "S"},
+            {"AttributeName": "ownerID", "AttributeType": "S"},
         ],
         BillingMode="PAY_PER_REQUEST",
     )
     table.wait_until_exists()
-    return table
+#     return table
 # create_users_table(dynamodb)
 
 # def create_orders_table(dynamodb):
