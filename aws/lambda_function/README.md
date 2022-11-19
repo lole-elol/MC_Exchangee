@@ -34,7 +34,9 @@
       "type": str,
       "quantity": int,
       "price": int,
-      "status": bool 
+      "status": bool,
+      "split_link": str,
+      "match_link": str
       }
 
 
