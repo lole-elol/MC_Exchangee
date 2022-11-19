@@ -16,3 +16,9 @@ Resources:
       Timeout: 30
       Architectures:
         - x86_64
+      # Events:
+      #   Api:
+      #     Type: Api
+      #     Properties:
+      #       Path: /ratings
+      #       Method: get

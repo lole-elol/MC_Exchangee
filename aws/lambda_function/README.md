@@ -42,3 +42,15 @@
 
 ## Possible Additional Features
 - Add logic for choosing between limit prices, market price, stop price 
+
+
+# Test Cases
+- 1:1 match (BUY -> SELL; SELL -> BUY) (same price + qty)
+	- price different, qty same
+		- sell x, with price > x; buy with price < x
+	- price same, qty different (INCLUDES SPLIT CASES)
+		- 1:n match (BUY -> )
+	- price different, qty different (INCLUDES SPLIT CASES)
+
+
+- 0:0 match (preis teurer als )
