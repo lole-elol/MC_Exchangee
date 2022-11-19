@@ -62,3 +62,9 @@
   - price different, qty different (INCLUDES SPLIT CASES)
 
 - 0:0 match (preis teurer als )
+
+# some rules for the DB:
+
+- the buyer gets the matched ID from the seller
+- the child (newer) order gets the ID from the older order (when the older one was not fully filled)
+- ?? What happends if buy = 20 and sell = 15? ->
