@@ -41,8 +41,8 @@ def success(order):
     
 
 def lambda_handler(event, context):
-    print(event)
     requestPath = event['path'].split('/hackatum-BloombergBackend-1znJQelc3f38')[-1]
+    print('requestPath:',requestPath,'Method:',event["httpMethod"],'Body:',event["body"],'QueryStringParameters:',event['queryStringParameters'])
     if requestPath == "/order":
         if event["httpMethod"] == "POST":
             if event["body"]["action"] == "buy" or event["body"]["action"] == "sell":
