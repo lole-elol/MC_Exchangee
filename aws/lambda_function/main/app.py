@@ -42,7 +42,8 @@ def success(order):
 
 def lambda_handler(event, context):
     print(event)
-    if event["path"] == "/order":
+    requestPath = event['path'].split('/hackatum-BloombergBackend-1znJQelc3f38')[-1]
+    if requestPath == "/order":
         if event["httpMethod"] == "POST":
             if event["body"]["action"] == "buy" or event["body"]["action"] == "sell":
                 matching(event['body'])
@@ -72,14 +73,14 @@ def lambda_handler(event, context):
                 return FAILURE
         
 
-    elif event["path"] == "/orderList":  # Order book of open orders filtzer by status
+    elif requestPath == "/orderList":  # Order book of open orders filtzer by status
         if event["httpMethod"] == "GET":
             if to_ret := get_all_unmatched_orders():
                 return success(to_ret)
             else:
                 return FAILURE
 
-    elif event["path"] == "/summary":  # Orderbook of user filzer by owner id
+    elif requestPath == "/summary":  # Orderbook of user filzer by owner id
         if event["httpMethod"] == "GET":
             if to_ret := get_all_user_orders(event['ownerID']):
                 return success(to_ret)
@@ -87,14 +88,15 @@ def lambda_handler(event, context):
                 return FAILURE
             
 
-    elif event["path"] == "/poll":  # return Order filtered by user and collected
+    elif requestPath == "/poll":  # return Order filtered by user and collected
         if event["httpMethod"] == "GET":
-            if to_ret := get_uncollected_user_orders(event['ownerID']):
+            order = event["body"]
+            if to_ret := get_uncollected_user_orders(order['ownerID']):
                 return success(to_ret)
             else:
                 return FAILURE
 
-    elif event["path"] == "/balance":
+    elif requestPath == "/balance":
         if event["httpMethod"] == "GET":
             pass
 
@@ -112,20 +114,25 @@ def lambda_handler(event, context):
 
 def balance():
     # claculate balance of users
-    users = {}
+    usersUnbalanced = {}
     orders = get_unbalanced_and_matched_orders()
     for order in orders:
-        if order['ownerID'] in users:
+        order["balanced"] = 1
+        if order['ownerID'] in usersUnbalanced:
             if order["side"] == "buy":
-                users[order['ownerID']] -= order['price'] * order['quantity']
+                usersUnbalanced[order['ownerID']] -= order['price'] * order['quantity']
             else: 
-                users[order['ownerID']] += order['price'] * order['quantity']
+                usersUnbalanced[order['ownerID']] += order['price'] * order['quantity']
         else:
             if order["side"] == "buy":
-                users[order['ownerID']] = -order['price'] * order['quantity']
+                usersUnbalanced[order['ownerID']] = -order['price'] * order['quantity']
             else: 
-                users[order['ownerID']] = order['price'] * order['quantity']
+                usersUnbalanced[order['ownerID']] = order['price'] * order['quantity']
     
+    for user in usersUnbalanced:
+        currentUser = get_user(user['ownerID'])
+        update_user_balance(user['ownerID'],usersUnbalanced[order['ownerID']]+currentUser['balance'])
+
     users = BALANCE.scan()["Items"]
     
     pass
@@ -144,6 +151,12 @@ def get_all_user_orders(ownerID):
     else:
         return 0
 
+def get_user(primaryKey):
+    result = BALANCE.get_item(Key={'userID':primaryKey})
+    if 'Item' in result:
+        return result['Item']
+    else:
+        return 0
 
 def get_uncollected_user_orders(ownerID):
     response = TABLE.query(
@@ -172,7 +185,7 @@ def delete_order(primaryKey,sortKey):
     TABLE.delete_item(TableName="orders", Key={'orderID':primaryKey,'side':sortKey}, ConditionExpression="attribute_exists(orderID)")
 
 def get_order(primaryKey):
-    result = TABLE.get_item(TableName="orders", Key={'orderID':primaryKey})
+    result = TABLE.get_item(Key={'orderID':primaryKey})
     if 'Item' in result:
         return result['Item']
     else:
