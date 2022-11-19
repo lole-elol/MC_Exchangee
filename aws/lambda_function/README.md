@@ -36,3 +36,7 @@
       "price": int,
       "status": bool 
       }
+
+
+## Possible Additional Features
+- Add logic for choosing between limit prices, market price, stop price 
