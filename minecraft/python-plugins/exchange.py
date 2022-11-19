@@ -16,6 +16,8 @@ import random
 from datetime import date
 import math
 
+api_base_url = "https://nxr9qbf1zf.execute-api.eu-central-1.amazonaws.com/default/hackatum-BloombergBackend-1znJQelc3f38/"
+
 """ Helper functions """
 
 # TODO => How wide is the chat window? 47 characters => prob. 48 | 58?
@@ -126,11 +128,15 @@ def random_order():
     item_name = item_names[int(random.random() * len(item_names))]
     return [ type, item_name, cost, user_name]
 
-
+def parse_order(ofa):
+    type = 'BUY' if ofa['side'] == 'buy' else 'SELL'
+    user_name = ofa['ownerID'] if ofa.get('ownerID') is not None else '---'
+    price = int(ofa['price'])
+    item_name = str(ofa['type'])
+    return [ type, item_name, price, user_name]
 
 
 """ API Module """
-
 
 def http_get(endpoint):
     req = urllib2.Request(endpoint)
@@ -144,7 +150,20 @@ def get_balance(player_name):
 
 all_orders = [ [ str(e) for e in random_order() ] for _ in range(100)]
 def get_orders(search = None, page=0):
-    filtered_orders = [ o for o in all_orders if search in o[1]] if search else all_orders
+
+    # Since the API does not support filtering, we'll just implement it client-side
+    all_open_orders = [ 
+        parse_order(order_from_api) for order_from_api 
+        in json.loads(http_get(api_base_url + "orderList"))
+    ]
+
+    filtered_orders = [
+        # Convert all elements to strings, required for the column formatting
+        [str(e) for e in order] for order 
+        in all_open_orders
+        # Apply search
+        if search.lower() in order[1]
+    ]
     n_pages = int(math.ceil(len(filtered_orders) / 8))
     current_page = min(page, n_pages)
 
