@@ -140,21 +140,43 @@ def parse_order(ofa):
 
 def http_get(endpoint):
     req = urllib2.Request(endpoint)
-    response = urllib2.urlopen(req)
+    try:
+        response = urllib2.urlopen(req)
+    except urllib2.HTTPError as e:
+        print(e)
+        return e.code, None
+
     data = response.read()
-    return data
+    status = response.getcode()
+    return status, data
+
+def http_post(endpoint, body):
+    print(body)
+    req = urllib2.Request(endpoint, body)
+    try:
+        response = urllib2.urlopen(req)
+    except urllib2.HTTPError as e:
+        print(e)
+        return e.code, None
+    
+    data = response.read()
+    status = response.getcode()
+    return status, data
 
 def get_balance(player_name):
-    response = http_get('http://demo1945772.mockable.io/balance')
-    return json.loads(response)['balance']
+    status, response = http_get('http://demo1945772.mockable.io/balance')
+    return json.loads(response)['balance'] if status == 200 else None
 
-all_orders = [ [ str(e) for e in random_order() ] for _ in range(100)]
 def get_orders(search = None, page=0):
 
     # Since the API does not support filtering, we'll just implement it client-side
+    status, body = http_get(api_base_url + "orderList")
+    if status != 200:
+        return None
+
     all_open_orders = [ 
         parse_order(order_from_api) for order_from_api 
-        in json.loads(http_get(api_base_url + "orderList"))
+        in json.loads(body)
     ]
 
     filtered_orders = [
@@ -168,6 +190,34 @@ def get_orders(search = None, page=0):
     current_page = min(page, n_pages)
 
     return current_page, n_pages, filtered_orders[page*8: (page+1)*8]
+
+def create_sell_order(price, item_name, quantity, player_name):
+    """ Creates a new sell order, returns a boolean indicating if everything went to plan """
+    # Create the body
+    body = json.dumps({
+        "side": "sell",
+        "price": price,
+        "quantity": quantity,
+        "status": 0,
+        "type": item_name,
+        "ownerID": player_name
+    })
+    status, _ = http_post(api_base_url + "order", body)
+    return status == 200
+
+def create_buy_order(price, item_name, quantity, player_name):
+    """ Creates a new buy order, returns a boolean indicating if everything went to plan """
+    # Create the body
+    body = json.dumps({
+        "side": "buy",
+        "price": price,
+        "quantity": quantity,
+        "status": 0,
+        "type": item_name,
+        "ownerID": player_name
+    })
+    status, _ = http_post(api_base_url + "order", body)
+    return status == 200
 
 def get_updates(player_name):
     n_sold = 10
@@ -204,6 +254,15 @@ def handle_balance(player_name, args):
 
     # Request balance from the server
     balance = get_balance(player_name)
+    if balance is None:
+        p.sendMessage(
+            colored_text("SERVER ERROR", [ ChatColor.RED, ChatColor.BOLD ])
+        )
+        p.sendMessage(
+            colored_text("Could not get balance, something went wrong with the server, please try again, later.", [ ChatColor.RED, ChatColor.ITALIC ])
+        )
+        return 
+
     
     # Display it to the user
     p.sendMessage(
@@ -285,7 +344,14 @@ def handle_sell(player_name, args):
     print("Player {} wants to sell {}x{} for {} each.".format(player_name, sell_count, material, sell_price))
 
     # Send the request
-    # TODO
+    if not create_sell_order(sell_price, item_name, sell_count, player_name):
+        p.sendMessage(
+            colored_text("SERVER ERROR", [ ChatColor.RED, ChatColor.BOLD ])
+        )
+        p.sendMessage(
+            colored_text("Could not create sell order, something went wrong with the server, please try again, later.", [ ChatColor.RED, ChatColor.ITALIC ])
+        )
+        return 
 
     # If okay, removed the item.
     item_in_hand.setAmount(amount_in_hand - sell_count)
@@ -345,7 +411,14 @@ def handle_buy(player_name, args):
         return
 
     # Send the request
-    # TODO
+    if not create_buy_order(item_price, item_name, item_amount, player_name):
+        p.sendMessage(
+            colored_text("SERVER ERROR", [ ChatColor.RED, ChatColor.BOLD ])
+        )
+        p.sendMessage(
+            colored_text("Could not create buy order, something went wrong with the server, please try again, later.", [ ChatColor.RED, ChatColor.ITALIC ])
+        )
+        return 
 
     # Notifiy the player if everything went well
     p.sendMessage(
@@ -386,12 +459,22 @@ def handle_orderbook(player_name, args):
     page = max(page, 0)
 
     # Ask the server for the data
-    page, total_pages, orders = get_orders(search, page)
+    order_info = get_orders(search, page)
+    if order_info is None:
+        p.sendMessage(
+            colored_text("SERVER ERROR", [ ChatColor.RED, ChatColor.BOLD ])
+        )
+        p.sendMessage(
+            colored_text("Could not get list of orders, something went wrong with the server, please try again, later.", [ ChatColor.RED, ChatColor.ITALIC ])
+        )
+        return 
+
+    # Extract the info, now that we know it's safe
+    page, total_pages, orders = order_info
 
 
     # Calculate column sizes
     column_sizes = get_column_sizes([order_display_header] + orders)
-    print(column_sizes)
 
     separator = ' || '
     # Header
