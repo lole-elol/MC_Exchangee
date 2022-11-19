@@ -44,8 +44,21 @@
 
 - 1:1 match (BUY -> SELL; SELL -> BUY) (same price + qty)
 
+  - sell -> buy 1:1 --> match
+  - buy -> sell 1:1 --> match
+
+  - sell -> buy 1:1 --> match
+  - buy -> sell 1:1 --> match
+
   - price different, qty same
+
     - sell x, with price > x; buy with price < x
+    - buy price x -> sell price y < x --> match
+    - buy price x -> sell price y > x --> no match
+
+    - sell price x -> buy price y > x --> match
+    - sell price x -> buy price y < x --> no match
+
   - price same, qty different (INCLUDES SPLIT CASES)
     BUY PERSPECTIVE
 
@@ -61,10 +74,36 @@
 
   - price different, qty different (INCLUDES SPLIT CASES)
 
-- 0:0 match (preis teurer als )
+    - sell x qt y -> buy u > x qt v > y
+    - sell x qt y -> buy u < x qt v < y
+
+    - sell x qt y -> buy u > x qt v < y
+    - sell x qt y -> buy u < x qt v > y
+
+    - buy x qt y -> sell u > x qt v > y
+    - buy x qt y -> sell u < x qt v < y
+
+    - buy x qt y -> sell u > x qt v < y
+    - buy x qt y -> sell u < x qt v > y
+
+- 0:0 match (preis teurer als
 
 # some rules for the DB:
 
 - the buyer gets the matched ID from the seller
 - the child (newer) order gets the ID from the older order (when the older one was not fully filled)
 - ?? What happends if buy = 20 and sell = 15? ->
+
+  - sell x qt y -> buy u > x qt v > y
+  - sell x qt y -> buy u < x qt v < y
+
+  - sell x qt y -> buy u > x qt v < y
+  - sell x qt y -> buy u < x qt v > y
+
+  - buy x qt y -> sell u > x qt v > y
+  - buy x qt y -> sell u < x qt v < y
+
+  - buy x qt y -> sell u > x qt v < y
+  - buy x qt y -> sell u < x qt v > y
+
+- 0:0 match (preis teurer als
