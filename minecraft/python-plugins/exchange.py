@@ -219,6 +219,7 @@ def collect_order(order_id):
     if status != 200:
         return None
 
+    print(response)
     response = json.loads(response)
     return { "id": response['orderID'], "name": response['type'], "amount": response['quantity'], "retreived": False }
 
