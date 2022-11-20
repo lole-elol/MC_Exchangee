@@ -192,7 +192,7 @@ def update_user_balance(ownerID, balance):
     )
 
 def give_new_user_balance(ownerID, balance):
-    return BALANCE.update_item(
+    res = BALANCE.update_item(
         Key={
             "ownerID": ownerID,
         },
@@ -202,6 +202,20 @@ def give_new_user_balance(ownerID, balance):
             ":b": balance,
         },
         ReturnValues="ALL_NEW")
+    if "Item" in res:
+        res = [{
+                **i,
+                "price": float(i["price"]),
+                "quantity": float(i["quantity"]),
+                "status": int(i["status"]),
+                "balanced": int(i['balanced']),
+                "userCollected": int(i['userCollected']),
+            }
+            for i in res["Item"]
+        ]
+        return res
+    else:
+        return 0
 
 def update_order_userCollected(orderID, side):
     TABLE.update_item(
