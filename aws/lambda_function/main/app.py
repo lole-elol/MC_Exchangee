@@ -119,7 +119,7 @@ def lambda_handler(event, context):
             if to_ret := get_user(user["ownerID"]):
                 return success(to_ret)
             else:
-                return FAILURE
+                return success(give_new_user_balance(user["ownerID"],100))
 
     else:
         print("no viable path")
@@ -184,11 +184,24 @@ def update_user_balance(ownerID, balance):
             "ownerID": ownerID,
         },
         UpdateExpression="SET balance = :b",
+        ConditionExpression="attribute_exists(orderID)",
         ExpressionAttributeValues={
             ":b": balance,
         },
         ReturnValues="NONE",
     )
+
+def give_new_user_balance(ownerID, balance):
+    BALANCE.update_item(
+        Key={
+            "ownerID": ownerID,
+        },
+        UpdateExpression="SET balance = :b",
+        ConditionExpression="attribute_not_exists(ownerID)",
+        ExpressionAttributeValues={
+            ":b": balance,
+        },
+        ReturnValues="FULL")
 
 def update_order_userCollected(orderID, side):
     TABLE.update_item(
@@ -281,7 +294,6 @@ def get_unbalanced_and_matched_orders():
         return res
     else:
         return 0
-
 
 def delete_order(orderID, sortKey):
     TABLE.delete_item(
@@ -543,12 +555,15 @@ def matching(in_order):
                 putRequests = []
         if putRequests:
             makeBatchPutRequests(putRequests)
+
     balance()
 
 def makeBatchPutRequests(requests):
     with TABLE.batch_writer() as batch:
         for item in requests:
             batch.put_item(Item=item)
+
+
 
 
 def reset():
