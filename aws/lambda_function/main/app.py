@@ -311,7 +311,7 @@ def get_unbalanced_and_matched_orders():
     response = TABLE.query(
         IndexName="balanced-status-index",
         KeyConditionExpression=Key("balanced").eq(0)
-        & Key("status").eq(1),  # get all unbalanced and matched orders
+        & Key("status").eq(0),  # get all unbalanced and matched orders
     )
     if "Items" in response:
         res = [
