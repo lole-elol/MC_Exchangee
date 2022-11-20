@@ -205,11 +205,7 @@ def give_new_user_balance(ownerID, balance):
     if "Item" in res:
         res = [{
                 **i,
-                "price": float(i["price"]),
-                "quantity": float(i["quantity"]),
-                "status": int(i["status"]),
-                "balanced": int(i['balanced']),
-                "userCollected": int(i['userCollected']),
+                "balance": float(i["balance"]),
             }
             for i in res["Item"]
         ]
