@@ -153,7 +153,7 @@ def balance():
                 newUserBalance[order["ownerID"]] = order["price"] * order["quantity"]
 
     for user in newUserBalance:  # update all users
-        currentUser = get_user(user["ownerID"])
+        currentUser = get_user(user)
         if currentUser:
             currentBalance = currentUser["balance"]
         else:
@@ -360,7 +360,6 @@ def get_all_unmatched_orders():
         IndexName="status-index",
         KeyConditionExpression=Key("status").eq(0),
     )
-    print(response)
     if "Items" in response:
         res = [
             {
