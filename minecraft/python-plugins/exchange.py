@@ -216,10 +216,10 @@ def collect_order(order_id):
     })
     print(query_params)
     status, response = http_get(api_base_url + 'query?' + query_params)
+    print(response)
     if status != 200:
         return None
 
-    print(response)
     response = json.loads(response)
     return { "id": response['orderID'], "name": response['type'], "amount": response['quantity'], "retreived": False }
 
