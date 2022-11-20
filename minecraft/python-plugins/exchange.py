@@ -231,7 +231,7 @@ def get_updates(player_name):
     return n_sold, sold_profit, bought
 
 def retrieve_by_id(player_name, order_id):
-    return { "id": order_id, "name": 'Dirt', "amount": 512, "retreived": False }
+    return { "id": order_id, "name": 'Gold_Ingot', "amount": 512, "retreived": False }
 
 
 
@@ -320,13 +320,7 @@ def handle_sell(player_name, args):
     # TODO we need to check if it's a custom item we're dealing with -> NBT tags, etc
 
     # Get the item's name, so we can display more info to the user
-    item_name = '<ITEMNAME>'
-    if item_in_hand_meta.hasDisplayName():
-        item_name = item_in_hand_meta.getDisplayName()
-    elif item_in_hand_meta.hasLocalizedName():
-        item_name = item_in_hand_meta.getLocalizedName()
-    else:
-        item_name = " ".join([ part.capitalize() for part in str(item_in_hand.getType()).split('_')])
+    item_name = "_".join([ part.capitalize() for part in str(item_in_hand.getType()).split('_')])
     
     # Check if the count is valid:
     if sell_count is None:
@@ -338,7 +332,7 @@ def handle_sell(player_name, args):
         return
     
 
-    # # Gather the data needed for the request
+    # Gather the data needed for the request
     material = item_in_hand.getType()
 
     print("Player {} wants to sell {}x{} for {} each.".format(player_name, sell_count, material, sell_price))
