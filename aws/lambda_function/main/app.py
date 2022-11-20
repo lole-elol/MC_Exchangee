@@ -114,7 +114,7 @@ def lambda_handler(event, context):
                 return FAILURE
 
     elif requestPath == "/balance":
-        if event["httpMethod"] == "GET":
+        if event["httpMethod"] == "POST":
             user = event["body"]
             if to_ret := get_user(user["ownerID"]):
                 return success(to_ret)
