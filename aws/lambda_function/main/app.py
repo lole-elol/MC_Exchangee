@@ -6,15 +6,13 @@ import botocore
 import random
 import string
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "db.json")
 DB = boto3.resource("dynamodb", region_name="eu-central-1")
-DBCLIENT = boto3.client("dynamodb", region_name="eu-central-1")
 
 TABLE = DB.Table("orders")
 BALANCE = DB.Table("users")
 
 SUCCESS = {"statusCode": 200,
-    "body": json.dumps(
+    "body": json.dumps( 
         {
             "message": "Success",
         }
@@ -36,14 +34,13 @@ FAILURE = {"statusCode": 400,
                 )}
 
 
-
 def success(order):
     return {"statusCode": 200, "body": json.dumps(order)}
     
 
 def lambda_handler(event, context):
     requestPath = event['path'].split('/hackatum-BloombergBackend-1znJQelc3f38')[-1]
-    print('requestPath:',requestPath,'Method:',event["httpMethod"],'Body:',event["body"],'QueryStringParameters:',event['queryStringParameters'])
+    print('requestPath:', requestPath, 'Method:',event["httpMethod"],'Body:',event["body"],'QueryStringParameters:',event['queryStringParameters'])
 
     # Technically better via TryExcept but I can't remember the exact Error
     # event["body"] = json.loads(event["body"]) if event['body'] is not None else None
@@ -56,14 +53,10 @@ def lambda_handler(event, context):
                  
 
         elif event["httpMethod"] == "DELETE":
-            # if event["body"]["action"] == "buy":
             order = event["body"]
             try:
                 delete_order(orderID=order['orderID'],sortKey=order['side'])
-            # Postponed
-            # except: 
-            #     return FAILURE_DEL
-            # else:
+
                 return SUCCESS
             except botocore.exceptions.ClientError:
                 # if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
@@ -215,8 +208,6 @@ def get_unbalanced_and_matched_orders():
     else:
         return 0
 
-# def edit_order(oprimary_key, order):
-#     TABLE.update_item(TableName="orders", Key=oprimary_key, UpdateExpression=order)
 
 def delete_order(orderID, sortKey):
     TABLE.delete_item(TableName="orders", Key={'orderID':orderID, 'side':sortKey}, ConditionExpression="attribute_exists(orderID)")
@@ -461,19 +452,6 @@ def makeBatchPutRequests(requests):
             batch.put_item(
                 Item=item
             )
-# ord =  {
-#             "orderID": "3",
-#             "side": "sell",
-#             "type": "wood",
-#             "quantity": 23,
-#             "price": 10,
-#             "status": 0,
-#             "split_link": "",
-#             "match_link": "",
-#             'balance' :0,
-#             'userCollected':0
-#         }
-# matching(ord)
 
 def reset():
     db = read_db()
