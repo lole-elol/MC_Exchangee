@@ -210,11 +210,22 @@ def create_buy_order(price, item_name, quantity, player_name):
     status, _ = http_post(api_base_url + "order", body)
     return status == 200
 
+def collect_order(order_id):
+    query_params = urllib.urlencode({
+        "orderID": order_id
+    })
+    print(query_params)
+    status, response = http_get(api_base_url + 'query?' + query_params)
+    if status != 200:
+        return None
+
+    response = json.loads(response)
+    return { "id": response['orderID'], "name": response['type'], "amount": response['quantity'], "retreived": False }
+
 def get_updates(player_name):
     query_params = urllib.urlencode({
         "ownerID": player_name
     })
-    print(query_params)
     status, response = http_get(api_base_url + 'poll?' + query_params)
 
     # Quick-exit when something wonky happened
@@ -239,11 +250,6 @@ def get_updates(player_name):
                     "amount": order['quantity']
                 })
     return n_sold, sold_profit, bought
-
-def retrieve_by_id(player_name, order_id):
-    return { "id": order_id, "name": 'Gold_Ingot', "amount": 512, "retreived": False }
-
-
 
 """ SubCommand handlers """
 
@@ -582,7 +588,7 @@ def handle_retreive(player_name, args):
 
     # Get the contents of the order
     order_id = args[0]
-    data = retrieve_by_id(player_name, order_id)
+    data = collect_order(order_id)
 
     # Check if something was found
     if data is None or data['retreived']:
