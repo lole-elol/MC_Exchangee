@@ -1,11 +1,13 @@
-# Backend
+# Backend LAMBDA Function
 
-## VSCODE
+## Setup
+
+### VSCODE
 
 - install aws toolkit
 
   - create credentials profile
-  - enter access key + secret access key from discord
+  - enter AWS IAM access key + secret access key
   - make sure the default region is region = eu-central-1
   - choose aws profile -> select the created profile
 
@@ -23,24 +25,15 @@
 - look for cheapest offer(s) until demand is met (maybe multiple small orders -> focus on cheapest buyer price)
 - you may find cheaper offers than your valuation/ask price
 
-## Order
-
-    {
-      "uid": str,
-      "side": str,
-      "type": str,
-      "quantity": int,
-      "price": int,
-      "status": bool,
-      "split_link": str,
-      "match_link": str
-      }
-
 ## Possible Additional Features
 
 - Add logic for choosing between limit prices, market price, stop price
 
-# Test Cases
+## Development approach
+
+We used test-driven development for developing our environment
+
+### Used tests
 
 - 1:1 match (BUY -> SELL; SELL -> BUY) (same price + qty)
 
@@ -86,24 +79,4 @@
     - buy x qt y -> sell u > x qt v < y
     - buy x qt y -> sell u < x qt v > y
 
-- 0:0 match (preis teurer als
-
-# some rules for the DB:
-
-- the buyer gets the matched ID from the seller
-- the child (newer) order gets the ID from the older order (when the older one was not fully filled)
-- ?? What happends if buy = 20 and sell = 15? ->
-
-  - sell x qt y -> buy u > x qt v > y
-  - sell x qt y -> buy u < x qt v < y
-
-  - sell x qt y -> buy u > x qt v < y
-  - sell x qt y -> buy u < x qt v > y
-
-  - buy x qt y -> sell u > x qt v > y
-  - buy x qt y -> sell u < x qt v < y
-
-  - buy x qt y -> sell u > x qt v < y
-  - buy x qt y -> sell u < x qt v > y
-
-- 0:0 match (preis teurer als
+- 0:0 match (buy price more expensive than sell price)

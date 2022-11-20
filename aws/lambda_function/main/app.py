@@ -39,16 +39,12 @@ FAILURE = {
 }
 
 
+
+
 def success(order):
     return {"statusCode": 200, "body": json.dumps(order)}
-    
-# def optionsExist(actualParams,requiredParams):
-#     if all(actualParams in requiredParams):
-#         return True
-#     else:
-#         return False
 
-def lambda_handler(event, context):
+def lambda_handler(event, context): # handles all requests received vi9a the API
     print(event)
     requestPath = event["path"].split("/hackatum-BloombergBackend-1znJQelc3f38")[-1]
     print(
@@ -74,14 +70,8 @@ def lambda_handler(event, context):
 
         elif event["httpMethod"] == "DELETE":
             order = event["body"]
-            # try:
             delete_order(orderID=order["orderID"], sortKey=order["side"])
             return SUCCESS
-            # except botocore.exceptions.ClientError:
-            #     # if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
-            #     return USER_NOT_FOUND_ERROR
-            # except Exception as e:
-            #     raise e
                 
         elif event["httpMethod"] == "GET": # when order is return set collected field True
             order = event["body"]
@@ -134,8 +124,7 @@ def lambda_handler(event, context):
         }
 
 
-def balance():
-    # claculate balance of users
+def balance():   # calculate and attribute outstanding balances of users
     newUserBalance = {}
     orders = get_unbalanced_and_matched_orders()
     print(orders)
@@ -165,7 +154,7 @@ def balance():
         )
 
 
-def update_order_balanced(orderID, side):
+def update_order_balanced(orderID, side): # Update order to have updated users balance 
     TABLE.update_item(
         Key={
             "orderID": orderID,
@@ -180,7 +169,7 @@ def update_order_balanced(orderID, side):
     )
 
 
-def update_user_balance(ownerID, balance):
+def update_user_balance(ownerID, balance): # Update the balance of a user
     BALANCE.update_item(
         Key={
             "ownerID": ownerID,
@@ -193,7 +182,7 @@ def update_user_balance(ownerID, balance):
         ReturnValues="NONE",
     )
 
-def give_new_user_balance(ownerID, balance):
+def give_new_user_balance(ownerID, balance): # Give new users a initial balance
     res = BALANCE.update_item(
         Key={
             "ownerID": ownerID,
@@ -215,7 +204,7 @@ def give_new_user_balance(ownerID, balance):
     else:
         return 0
 
-def update_order_userCollected(orderID, side):
+def update_order_userCollected(orderID, side): # Update order once it has been received by the user via api
     TABLE.update_item(
         Key={
             "orderID": orderID,
@@ -229,11 +218,7 @@ def update_order_userCollected(orderID, side):
     )
 
 
-def write_to_order_book(order) -> None:
-    TABLE.put_item(TableName="orders", Item=order)
-
-
-def get_all_user_orders(ownerID):
+def get_all_user_orders(ownerID): # get all orders of a certain user
     response = TABLE.query(
         IndexName="ownerID-userCollected-index",
         KeyConditionExpression=Key("ownerID").eq(ownerID),
@@ -254,29 +239,8 @@ def get_all_user_orders(ownerID):
     else:
         return 0
 
-# PoC dataclass for users
-# @dataclass
-# class User():
-#     ownerID: str
-#     balance: int
 
-#     @staticmethod
-#     def get_from_database(ownerID: str) -> "User" | None:
-#         """ 
-#             Get the user with the given ownerID from the database
-#             May return None if there's no user with that ownerID
-#         """
-#         res = BALANCE.get_item(Key={ "ownerID": ownerID })
-#         if not "Item" in res:
-#             return None
-        
-#         # "balance": int(res['Item']['balance']),
-#         # "ownerID": str(res['Item']['ownerID'])
-#         balance = int(res['Item']['balance'])
-#         ownerID = str(res['Item']['ownerID'])
-#         return User(ownerID, balance)
-
-def get_user(primaryKey: str):
+def get_user(primaryKey: str): # get a certain user by its id
     res = BALANCE.get_item(Key={"ownerID": primaryKey})
     if not "Item" in res:
         return None
@@ -285,7 +249,7 @@ def get_user(primaryKey: str):
         "ownerID": str(res['Item']['ownerID'])
     }
 
-def get_uncollected_user_orders(ownerID):
+def get_uncollected_user_orders(ownerID): # get all orders that have not been fetched yet by the api
     response = TABLE.query(
         IndexName="ownerID-userCollected-index",
         KeyConditionExpression=Key("ownerID").eq(ownerID) & Key("userCollected").eq(0),
@@ -307,11 +271,11 @@ def get_uncollected_user_orders(ownerID):
         return 0
 
 
-def get_unbalanced_and_matched_orders():
+def get_unbalanced_and_matched_orders():  # get all unbalanced and matched orders (settled orders that do not have their balance added to the user balances yet)
     response = TABLE.query(
         IndexName="balanced-status-index",
         KeyConditionExpression=Key("balanced").eq(0)
-        & Key("status").eq(0),  # get all unbalanced and matched orders
+        & Key("status").eq(0), 
     )
     if "Items" in response:
         res = [
@@ -329,7 +293,7 @@ def get_unbalanced_and_matched_orders():
     else:
         return 0
 
-def delete_order(orderID, sortKey):
+def delete_order(orderID, sortKey): # delete a certain order from the db. Only if not settled yet
     TABLE.delete_item(
         TableName="orders",
         Key={"orderID": orderID, "side": sortKey},
@@ -337,7 +301,7 @@ def delete_order(orderID, sortKey):
     )
 
 
-def get_order(orderID):
+def get_order(orderID): # Get a single order by orderID
     response = TABLE.query(
         KeyConditionExpression=Key("orderID").eq(orderID))
     if "Items" in response:
@@ -356,8 +320,7 @@ def get_order(orderID):
     else:
         return 0
 
-
-def get_all_unmatched_orders():
+def get_all_unmatched_orders(): # Get all orders that are still unsetteled/open
     response = TABLE.query(
         IndexName="status-index",
         KeyConditionExpression=Key("status").eq(0),
@@ -378,14 +341,14 @@ def get_all_unmatched_orders():
     else:
         return 0
         
-def generateUID():
+def generateUID(): # generate a 
     random.shuffle
     return "".join(
         random.choice(string.ascii_uppercase + string.digits) for _ in range(12)
     )
 
 
-def matching(in_order):
+def matching(in_order): # Matching algorithm. Input = Buy or Sell orders
     in_order["orderID"] = generateUID()
     in_isBuyOrder = True if in_order["side"] == "buy" else False
 
@@ -592,7 +555,7 @@ def matching(in_order):
 
     balance()
 
-def makeBatchPutRequests(requests):
+def makeBatchPutRequests(requests): # Batch all put requests for the matching algorithm to optimise for speed
     with TABLE.batch_writer() as batch:
         for item in requests:
             batch.put_item(Item=item)
@@ -600,7 +563,7 @@ def makeBatchPutRequests(requests):
 
 
 
-def reset():
+def reset(): # delete all items in the DB
     db = read_db()
     for item in db:
         print(item["orderID"], type(item["orderID"]))
@@ -608,19 +571,16 @@ def reset():
             TableName="orders", Key={"orderID": item["orderID"], "side": item["side"]}
         )
 
-
-def init_db(obj):
-
+def init_db(obj): # create Items for the unit tests 
     for o in obj:
         TABLE.put_item(Item=o)
 
 
-def read_db():
+def read_db(): # Read the whole table for the unit tests
     item_retrieved_from_db = TABLE.scan()["Items"]
     return item_retrieved_from_db
 
-
-
+# CREATE all necessary users DB tables
 def create_users_table(dynamodb):
     table = dynamodb.create_table(
         TableName="users",
@@ -649,29 +609,3 @@ def create_orders_table(dynamodb):
     )
     table.wait_until_exists()
     return table
-
-# def generateTestData():
-#     with table.batch_writer() as writer:
-#         for i in range(2000):
-#             order = {
-#                 "orderID": generateUID,
-#                 "uid": generateUID,
-#                 "side": random.choice(
-#                     [
-#                         "rock",
-#                         "stone",
-#                         "dirt",
-#                         "gold",
-#                         "diamond",
-#                     ]
-#                 ),
-#                 "type": random.choice(["BUY", "SELL"]),
-#                 "quantity": random.choice(range(1, 100)),
-#                 "price": Deci(str(random.uniform(10.5, 75.5))),
-#                 'balanced' : 0,
-#                 'collected' : 0
-#             }
-#             # print(order)
-#             writer.put_item(Item=order)
-
-# balance()
