@@ -234,7 +234,7 @@ def get_updates(player_name):
                 sold_profit += int(order['quantity']) * int(order['price'])
             else:
                 bought.append({
-                    "id": order['id'],
+                    "id": order['orderID'],
                     "name": order['type'],
                     "amount": order['quantity']
                 })
