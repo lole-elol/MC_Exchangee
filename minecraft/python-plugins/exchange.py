@@ -227,8 +227,8 @@ def get_updates(player_name):
 
     orders = json.loads(response)
     for order in orders:
-        # Status 0 -> unfullfilled
-        if order['status'] != 0:
+        # Status 1 -> unfullfilled
+        if order['status'] != 1:
             if order['side'] == 'sell':
                 n_sold += 1
                 sold_profit += int(order['quantity']) * int(order['price'])
