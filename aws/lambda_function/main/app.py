@@ -61,8 +61,6 @@ def lambda_handler(event, context):
         event["queryStringParameters"],
     )
 
-    # Technically better via TryExcept but I can't remember the exact Error
-    # event["body"] = json.loads(event["body"]) if event['body'] is not None else None
     if event['body']:
         event["body"] = json.loads(event["body"]) if type(event["body"]) is str else event["body"]
     
@@ -75,13 +73,14 @@ def lambda_handler(event, context):
 
         elif event["httpMethod"] == "DELETE":
             order = event["body"]
-            try:
-                delete_order(orderID=order["orderID"], sortKey=order["side"])
-
-                return SUCCESS
-            except botocore.exceptions.ClientError:
-                # if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
-                return FAILURE_DEL
+            # try:
+            delete_order(orderID=order["orderID"], sortKey=order["side"])
+            return SUCCESS
+            # except botocore.exceptions.ClientError:
+            #     # if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
+            #     return USER_NOT_FOUND_ERROR
+            # except Exception as e:
+            #     raise e
                 
         elif event["httpMethod"] == "GET": # when order is return set collected field True
             order = event["body"]
@@ -95,7 +94,7 @@ def lambda_handler(event, context):
             if to_ret := get_all_unmatched_orders():
                 return success(to_ret)
             else:
-                return FAILURE
+                return success([])
 
     elif requestPath == "/summary":  # Orderbook of user filzer by owner id
         if event["httpMethod"] == "GET":
@@ -211,6 +210,11 @@ def get_all_user_orders(ownerID):
     else:
         return 0
 
+    #1. werte
+    #keine werte
+    #user/order nicht gefunden
+        # anderer fehler
+
 
 def get_user(primaryKey):
     result = BALANCE.get_item(Key={"ownerID": primaryKey})
@@ -304,7 +308,7 @@ def get_all_unmatched_orders():
         ]
         return res
     else:
-        return []
+        return 0
         
 def generateUID():
     random.shuffle
@@ -517,7 +521,7 @@ def matching(in_order):
                 putRequests = []
         if putRequests:
             makeBatchPutRequests(putRequests)
-
+    balance()
 
 def makeBatchPutRequests(requests):
     with TABLE.batch_writer() as batch:
