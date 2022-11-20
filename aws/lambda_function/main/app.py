@@ -166,7 +166,7 @@ def balance():
 def update_order_balanced(orderID, side):
     TABLE.update_item(
         Key={
-            "ownerID": orderID,
+            "orderID": orderID,
             "side": side,
         },
         UpdateExpression="SET balanced = :b",
@@ -336,8 +336,9 @@ def delete_order(orderID, sortKey):
 
 
 def get_order(orderID):
-    response = TABLE.get_item(Key={"orderID": orderID})
-    if "Item" in response:
+    response = TABLE.query(
+        KeyConditionExpression=Key("orderID").eq(orderID))
+    if "Items" in response:
         res = [
             {
                 **i,
@@ -347,7 +348,7 @@ def get_order(orderID):
                 "balanced": int(i['balanced']),
                 "userCollected": int(i['userCollected']),
             }
-            for i in response["Item"]
+            for i in response["Items"]
         ]
         return res
     else:
