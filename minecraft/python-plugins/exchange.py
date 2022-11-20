@@ -489,10 +489,11 @@ def handle_orderbook(player_name, args):
     )
     # Data
     for order in orders:
-        p.sendMessage(separator.join([
-            pad_string_right(h, column_sizes[i] + 1) for i, h in enumerate(order)
-        ]))
-    # Footer?
+        tmp = []
+        for i, h in enumerate(order):
+            tmp.append(pad_string_right(h, column_sizes[i] + 1))
+        p.sendMessage(separator.join(tmp))
+    # Footer
     page_string = "Page {}/{}".format(page + 1, total_pages + 1)
     p.sendMessage(
         "{}{}".format(
