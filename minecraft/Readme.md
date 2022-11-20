@@ -23,5 +23,9 @@ For simplicity sake, you can just set up the server in this directory, the gitig
 Then you also don't need to copy/create the `python-plugins` folder.
 
 
+## Configuration
+To make the plugin talk to the lambda function, the corresponding url needs to be put into the plugin itself.
+Change `api_base_url` to the url of your deployed lambda function and you're ready!
+
 ## Known Issues
 - Autocomplete is not working for the commands - but this is an issue with [minecraft-python](https://github.com/Macuyiko/minecraft-python) itself and not this plugin.
