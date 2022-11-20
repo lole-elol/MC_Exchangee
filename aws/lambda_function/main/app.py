@@ -206,6 +206,8 @@ def get_all_user_orders(ownerID):
                 "price": float(i["price"]),
                 "quantity": float(i["quantity"]),
                 "status": int(i["status"]),
+                "balanced": int(i['balanced']),
+                "userCollected": int(i['userCollected']),
             }
             for i in response["Items"]
         ]
@@ -239,6 +241,8 @@ def get_uncollected_user_orders(ownerID):
                 "price": float(i["price"]),
                 "quantity": float(i["quantity"]),
                 "status": int(i["status"]),
+                "balanced": int(i['balanced']),
+                "userCollected": int(i['userCollected']),
             }
             for i in response["Items"]
         ]
@@ -260,6 +264,8 @@ def get_unbalanced_and_matched_orders():
                 "price": float(i["price"]),
                 "quantity": float(i["quantity"]),
                 "status": int(i["status"]),
+                "balanced": int(i['balanced']),
+                "userCollected": int(i['userCollected']),
             }
             for i in response["Items"]
         ]
@@ -285,6 +291,8 @@ def get_order(orderID):
                 "price": float(i["price"]),
                 "quantity": float(i["quantity"]),
                 "status": int(i["status"]),
+                "balanced": int(i['balanced']),
+                "userCollected": int(i['userCollected']),
             }
             for i in response["Item"]
         ]
@@ -306,6 +314,8 @@ def get_all_unmatched_orders():
                 "price": float(i["price"]),
                 "quantity": float(i["quantity"]),
                 "status": int(i["status"]),
+                "balanced": int(i['balanced']),
+                "userCollected": int(i['userCollected']),
             }
             for i in response["Items"]
         ]
