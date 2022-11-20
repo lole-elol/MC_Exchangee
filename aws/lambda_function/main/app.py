@@ -66,7 +66,7 @@ def lambda_handler(event, context):
     
     if requestPath == "/order":
         order = event["body"]
-        if event["httpMethod"] == "POST" :
+        if event["httpMethod"] == "POST":
             if order["side"] == "buy" or order["side"] == "sell":
                 matching(order)
                 return SUCCESS
@@ -153,8 +153,12 @@ def balance():
 
     for user in newUserBalance:  # update all users
         currentUser = get_user(user["ownerID"])
+        if currentUser:
+            currentBalance = currentUser["balance"]
+        else:
+            currentBalance = 100
         update_user_balance(
-            user["ownerID"], newUserBalance[user["ownerID"]] + currentUser["balance"]
+            user["ownerID"], newUserBalance[user["ownerID"]] + currentBalance
         )
 
 
@@ -179,7 +183,6 @@ def update_user_balance(ownerID, balance):
             "ownerID": ownerID,
         },
         UpdateExpression="SET balance = :b",
-        ConditionExpression="attribute_exists(ownerID)",
         ExpressionAttributeValues={
             ":b": balance,
         },
