@@ -192,7 +192,7 @@ def update_user_balance(ownerID, balance):
     )
 
 def give_new_user_balance(ownerID, balance):
-    BALANCE.update_item(
+    return BALANCE.update_item(
         Key={
             "ownerID": ownerID,
         },
