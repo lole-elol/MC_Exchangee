@@ -84,7 +84,8 @@ def lambda_handler(event, context):
                 
         elif event["httpMethod"] == "GET": # when order is return set collected field True
             order = event["body"]
-            if to_ret := get_order(orderID=order["orderID"]):
+            if to_ret := get_order(orderID=event['queryStringParameters']['orderID']):
+                update_order_userCollected(to_ret[0]['orderID'],to_ret[0]['side'])
                 return success(to_ret)
             else:
                 return FAILURE
@@ -99,7 +100,7 @@ def lambda_handler(event, context):
     elif requestPath == "/summary":  # Orderbook of user filzer by owner id
         if event["httpMethod"] == "GET":
             order = event["body"]
-            if to_ret := get_all_user_orders(order['ownerID']):
+            if to_ret := get_all_user_orders(event['queryStringParameters']['ownerID']):
                 return success(to_ret)
             else:
                 return FAILURE
@@ -107,7 +108,7 @@ def lambda_handler(event, context):
     elif requestPath == "/poll":  # return Order filtered by user and collected
         if event["httpMethod"] == "GET":
             order = event["body"]
-            if to_ret := get_uncollected_user_orders(order["ownerID"]):
+            if to_ret := get_uncollected_user_orders(event['queryStringParameters']['ownerID']):
                 return success(to_ret)
             else:
                 return FAILURE
@@ -189,6 +190,19 @@ def update_user_balance(ownerID, balance):
         ReturnValues="NONE",
     )
 
+def update_order_userCollected(orderID, side):
+    TABLE.update_item(
+        Key={
+            "orderID": orderID,
+            "side": side
+        },
+        UpdateExpression="SET userCollected = :b",
+        ExpressionAttributeValues={
+            ":b": 1,
+        },
+        ReturnValues="NONE",
+    )
+
 
 def write_to_order_book(order) -> None:
     TABLE.put_item(TableName="orders", Item=order)
@@ -214,11 +228,6 @@ def get_all_user_orders(ownerID):
         return res
     else:
         return 0
-
-    #1. werte
-    #keine werte
-    #user/order nicht gefunden
-        # anderer fehler
 
 
 def get_user(primaryKey):
