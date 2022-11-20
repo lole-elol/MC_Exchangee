@@ -336,8 +336,9 @@ def delete_order(orderID, sortKey):
 
 
 def get_order(orderID):
-    response = TABLE.get_item(Key={"orderID": orderID})
-    if "Item" in response:
+    response = TABLE.query(
+        KeyConditionExpression=Key("orderID").eq(orderID))
+    if "Items" in response:
         res = [
             {
                 **i,
@@ -347,12 +348,13 @@ def get_order(orderID):
                 "balanced": int(i['balanced']),
                 "userCollected": int(i['userCollected']),
             }
-            for i in response["Item"]
+            for i in response["Items"]
         ]
         return res
     else:
         return 0
 
+# print(get_order('GT4XZQ42W2LL'))
 
 def get_all_unmatched_orders():
     response = TABLE.query(
