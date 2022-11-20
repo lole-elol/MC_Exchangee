@@ -49,6 +49,7 @@ def success(order):
 #         return False
 
 def lambda_handler(event, context):
+    print(event)
     requestPath = event["path"].split("/hackatum-BloombergBackend-1znJQelc3f38")[-1]
     print(
         "requestPath:",
@@ -204,7 +205,7 @@ def give_new_user_balance(ownerID, balance):
         ReturnValues="ALL_NEW")
     if "Item" in res:
         res = [{
-                **i,
+                'ownerID': i['ownerID'],
                 "balance": float(i["balance"]),
             }
             for i in res["Item"]
@@ -257,7 +258,7 @@ def get_user(primaryKey):
     res = BALANCE.get_item(Key={"ownerID": primaryKey})
     if "Item" in res:
         res = [{
-                **i,
+                'ownerID': i['ownerID'],
                 "balance": float(i["balance"]),
             }
             for i in res["Item"]
