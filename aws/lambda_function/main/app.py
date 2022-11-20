@@ -159,7 +159,7 @@ def balance():
         else:
             currentBalance = 100
         update_user_balance(
-            user["ownerID"], newUserBalance[user] + currentBalance
+            user, newUserBalance[user] + currentBalance
         )
 
 
