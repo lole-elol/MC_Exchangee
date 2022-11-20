@@ -254,9 +254,15 @@ def get_all_user_orders(ownerID):
 
 
 def get_user(primaryKey):
-    result = BALANCE.get_item(Key={"ownerID": primaryKey})
-    if "Item" in result:
-        return result["Item"]
+    res = BALANCE.get_item(Key={"ownerID": primaryKey})
+    if "Item" in res:
+        res = [{
+                **i,
+                "balance": float(i["balance"]),
+            }
+            for i in res["Item"]
+        ]
+        return res
     else:
         return 0
 
