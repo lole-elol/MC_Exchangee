@@ -258,15 +258,18 @@ def get_user(primaryKey):
     res = BALANCE.get_item(Key={"ownerID": primaryKey})
     if "Item" in res:
         res = [{
-                'ownerID': i['ownerID'],
-                "balance": float(i["balance"]),
-            }
-            for i in res["Item"]
+                'ownerID': i[primaryKey]['ownerID'],
+                "balance": float(i[i]['balance']),
+            } for i in res["Item"]
         ]
+        print(res)
+        exit()
         return res
     else:
         return 0
 
+
+print(get_user("Intel4004"))
 
 def get_uncollected_user_orders(ownerID):
     response = TABLE.query(
