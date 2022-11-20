@@ -3,6 +3,7 @@ import boto3
 from boto3.dynamodb.conditions import Key
 import random
 import string
+from decimal import Decimal
 
 DB = boto3.resource("dynamodb", region_name="eu-central-1")
 
@@ -137,6 +138,7 @@ def balance():
     # claculate balance of users
     newUserBalance = {}
     orders = get_unbalanced_and_matched_orders()
+    print(orders)
     for order in orders:
         update_order_balanced(
             order["orderID"], order["side"]
@@ -153,13 +155,13 @@ def balance():
                 newUserBalance[order["ownerID"]] = order["price"] * order["quantity"]
 
     for user in newUserBalance:  # update all users
-        currentUser = get_user(user["ownerID"])
+        currentUser = get_user(user)
         if currentUser:
             currentBalance = currentUser["balance"]
         else:
             currentBalance = 100
         update_user_balance(
-            user["ownerID"], newUserBalance[user["ownerID"]] + currentBalance
+            user, newUserBalance[user] + currentBalance
         )
 
 
@@ -184,9 +186,9 @@ def update_user_balance(ownerID, balance):
             "ownerID": ownerID,
         },
         UpdateExpression="SET balance = :b",
-        ConditionExpression="attribute_exists(orderID)",
+        ConditionExpression="attribute_exists(ownerID)",
         ExpressionAttributeValues={
-            ":b": balance,
+            ":b": Decimal(balance),
         },
         ReturnValues="NONE",
     )
@@ -309,7 +311,7 @@ def get_unbalanced_and_matched_orders():
     response = TABLE.query(
         IndexName="balanced-status-index",
         KeyConditionExpression=Key("balanced").eq(0)
-        & Key("status").eq(1),  # get all unbalanced and matched orders
+        & Key("status").eq(0),  # get all unbalanced and matched orders
     )
     if "Items" in response:
         res = [
@@ -360,7 +362,6 @@ def get_all_unmatched_orders():
         IndexName="status-index",
         KeyConditionExpression=Key("status").eq(0),
     )
-    print(response)
     if "Items" in response:
         res = [
             {
@@ -672,3 +673,5 @@ def create_orders_table(dynamodb):
 #             }
 #             # print(order)
 #             writer.put_item(Item=order)
+
+# balance()
