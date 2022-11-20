@@ -220,7 +220,7 @@ def collect_order(order_id):
     if status != 200:
         return None
 
-    response = json.loads(response)
+    response = json.loads(response)[0]
     return { "id": response['orderID'], "name": response['type'], "amount": response['quantity'], "retreived": False }
 
 def get_updates(player_name):
