@@ -201,7 +201,7 @@ def give_new_user_balance(ownerID, balance):
         ExpressionAttributeValues={
             ":b": balance,
         },
-        ReturnValues="FULL")
+        ReturnValues="ALL_NEW")
 
 def update_order_userCollected(orderID, side):
     TABLE.update_item(
