@@ -10,6 +10,96 @@ DB = boto3.resource("dynamodb", region_name="eu-central-1")
 TABLE = DB.Table("orders")
 BALANCE = DB.Table("users")
 
+
+def lambda_handler(event, context):  # handles all requests received via the API
+    print(event)
+    requestPath = event["path"].split("/hackatum-BloombergBackend-1znJQelc3f38")[-1]
+    print(
+        "requestPath:",
+        requestPath,
+        "Method:",
+        event["httpMethod"],
+        "Body:",
+        event["body"],
+        "QueryStringParameters:",
+        event["queryStringParameters"],
+    )
+
+    if event["body"]:
+        event["body"] = (
+            json.loads(event["body"]) if type(event["body"]) is str else event["body"]
+        )
+
+    if requestPath == "/order":
+        order = event["body"]
+        if event["httpMethod"] == "POST":
+            if order["side"] == "buy" or order["side"] == "sell":
+                matching(order)
+                return SUCCESS
+
+        elif event["httpMethod"] == "DELETE":
+            order = event["body"]
+            delete_order(orderID=order["orderID"], sortKey=order["side"])
+            return SUCCESS
+
+        elif (
+            event["httpMethod"] == "GET"
+        ):  # when order is return set collected field True
+            order = event["body"]
+            if to_ret := get_order(orderID=event["queryStringParameters"]["orderID"]):
+                update_order_userCollected(to_ret[0]["orderID"], to_ret[0]["side"])
+                return success_dump_response(to_ret)
+            else:
+                return FAILURE
+
+    elif requestPath == "/orderList":  # Order book of open orders filtzer by status
+        if event["httpMethod"] == "GET":
+            if to_ret := get_all_unmatched_orders():
+                return success_dump_response(to_ret)
+            else:
+                return success_dump_response([])
+
+    elif requestPath == "/summary":  # Orderbook of user filzer by owner id
+        if event["httpMethod"] == "GET":
+            order = event["body"]
+            if to_ret := get_all_user_orders(event["queryStringParameters"]["ownerID"]):
+                return success_dump_response(to_ret)
+            else:
+                return FAILURE
+
+    elif requestPath == "/poll":  # return Order filtered by user and collected
+        if event["httpMethod"] == "GET":
+            order = event["body"]
+            if to_ret := get_uncollected_user_orders(
+                event["queryStringParameters"]["ownerID"]
+            ):
+                return success_dump_response(to_ret)
+            else:
+                return FAILURE
+
+    elif requestPath == "/balance":
+        if event["httpMethod"] == "POST":
+            user = event["body"]
+            if to_ret := get_user(user["ownerID"]):
+                return success_dump_response(to_ret)
+            else:
+                return success_dump_response(
+                    give_new_user_balance(user["ownerID"], 100)
+                )
+
+    else:
+        print("no viable path")
+        return {
+            "statusCode": 200,
+            "body": json.dumps(
+                {
+                    "message": "hello world",
+                }
+            ),
+        }
+
+
+### RESPONSE Codes for the API
 SUCCESS = {
     "statusCode": 200,
     "body": json.dumps(
@@ -39,122 +129,11 @@ FAILURE = {
 }
 
 
-
-
-def success(order):
+def success_dump_response(order):
     return {"statusCode": 200, "body": json.dumps(order)}
 
-def lambda_handler(event, context): # handles all requests received vi9a the API
-    print(event)
-    requestPath = event["path"].split("/hackatum-BloombergBackend-1znJQelc3f38")[-1]
-    print(
-        "requestPath:",
-        requestPath,
-        "Method:",
-        event["httpMethod"],
-        "Body:",
-        event["body"],
-        "QueryStringParameters:",
-        event["queryStringParameters"],
-    )
 
-    if event['body']:
-        event["body"] = json.loads(event["body"]) if type(event["body"]) is str else event["body"]
-    
-    if requestPath == "/order":
-        order = event["body"]
-        if event["httpMethod"] == "POST":
-            if order["side"] == "buy" or order["side"] == "sell":
-                matching(order)
-                return SUCCESS
-
-        elif event["httpMethod"] == "DELETE":
-            order = event["body"]
-            delete_order(orderID=order["orderID"], sortKey=order["side"])
-            return SUCCESS
-                
-        elif event["httpMethod"] == "GET": # when order is return set collected field True
-            order = event["body"]
-            if to_ret := get_order(orderID=event['queryStringParameters']['orderID']):
-                update_order_userCollected(to_ret[0]['orderID'],to_ret[0]['side'])
-                return success(to_ret)
-            else:
-                return FAILURE
-        
-    elif requestPath == "/orderList":  # Order book of open orders filtzer by status
-        if event["httpMethod"] == "GET":
-            if to_ret := get_all_unmatched_orders():
-                return success(to_ret)
-            else:
-                return success([])
-
-    elif requestPath == "/summary":  # Orderbook of user filzer by owner id
-        if event["httpMethod"] == "GET":
-            order = event["body"]
-            if to_ret := get_all_user_orders(event['queryStringParameters']['ownerID']):
-                return success(to_ret)
-            else:
-                return FAILURE
-
-    elif requestPath == "/poll":  # return Order filtered by user and collected
-        if event["httpMethod"] == "GET":
-            order = event["body"]
-            if to_ret := get_uncollected_user_orders(event['queryStringParameters']['ownerID']):
-                return success(to_ret)
-            else:
-                return FAILURE
-
-    elif requestPath == "/balance":
-        if event["httpMethod"] == "POST":
-            user = event["body"]
-            if to_ret := get_user(user["ownerID"]):
-                return success(to_ret)
-            else:
-                return success(give_new_user_balance(user["ownerID"],100))
-
-    else:
-        print("no viable path")
-        return {
-            "statusCode": 200,
-            "body": json.dumps(
-                {
-                    "message": "hello world",
-                }
-            ),
-        }
-
-
-def balance():   # calculate and attribute outstanding balances of users
-    newUserBalance = {}
-    orders = get_unbalanced_and_matched_orders()
-    print(orders)
-    for order in orders:
-        update_order_balanced(
-            order["orderID"], order["side"]
-        )  # set for all orders "balanced" to 1
-        if order["ownerID"] in newUserBalance:
-            if order["side"] == "buy":
-                newUserBalance[order["ownerID"]] -= order["price"] * order["quantity"]
-            else:
-                newUserBalance[order["ownerID"]] += order["price"] * order["quantity"]
-        else:
-            if order["side"] == "buy":
-                newUserBalance[order["ownerID"]] = -order["price"] * order["quantity"]
-            else:
-                newUserBalance[order["ownerID"]] = order["price"] * order["quantity"]
-
-    for user in newUserBalance:  # update all users
-        currentUser = get_user(user)
-        if currentUser:
-            currentBalance = currentUser["balance"]
-        else:
-            currentBalance = 100
-        update_user_balance(
-            user, newUserBalance[user] + currentBalance
-        )
-
-
-def update_order_balanced(orderID, side): # Update order to have updated users balance 
+def update_order_balanced(orderID, side):  # Update order to have updated users balance
     TABLE.update_item(
         Key={
             "orderID": orderID,
@@ -169,7 +148,7 @@ def update_order_balanced(orderID, side): # Update order to have updated users b
     )
 
 
-def update_user_balance(ownerID, balance): # Update the balance of a user
+def update_user_balance(ownerID, balance):  # Update the balance of a user
     BALANCE.update_item(
         Key={
             "ownerID": ownerID,
@@ -182,7 +161,8 @@ def update_user_balance(ownerID, balance): # Update the balance of a user
         ReturnValues="NONE",
     )
 
-def give_new_user_balance(ownerID, balance): # Give new users a initial balance
+
+def give_new_user_balance(ownerID, balance):  # Give new users a initial balance
     res = BALANCE.update_item(
         Key={
             "ownerID": ownerID,
@@ -192,10 +172,12 @@ def give_new_user_balance(ownerID, balance): # Give new users a initial balance
         ExpressionAttributeValues={
             ":b": balance,
         },
-        ReturnValues="ALL_NEW")
+        ReturnValues="ALL_NEW",
+    )
     if "Item" in res:
-        res = [{
-                'ownerID': i['ownerID'],
+        res = [
+            {
+                "ownerID": i["ownerID"],
                 "balance": float(i["balance"]),
             }
             for i in res["Item"]
@@ -204,12 +186,12 @@ def give_new_user_balance(ownerID, balance): # Give new users a initial balance
     else:
         return 0
 
-def update_order_userCollected(orderID, side): # Update order once it has been received by the user via api
+
+def update_order_userCollected(
+    orderID, side
+):  # Update order once it has been received by the user via api
     TABLE.update_item(
-        Key={
-            "orderID": orderID,
-            "side": side
-        },
+        Key={"orderID": orderID, "side": side},
         UpdateExpression="SET userCollected = :b",
         ExpressionAttributeValues={
             ":b": 1,
@@ -218,7 +200,7 @@ def update_order_userCollected(orderID, side): # Update order once it has been r
     )
 
 
-def get_all_user_orders(ownerID): # get all orders of a certain user
+def get_all_user_orders(ownerID):  # get all orders of a certain user
     response = TABLE.query(
         IndexName="ownerID-userCollected-index",
         KeyConditionExpression=Key("ownerID").eq(ownerID),
@@ -230,8 +212,8 @@ def get_all_user_orders(ownerID): # get all orders of a certain user
                 "price": float(i["price"]),
                 "quantity": float(i["quantity"]),
                 "status": int(i["status"]),
-                "balanced": int(i['balanced']),
-                "userCollected": int(i['userCollected']),
+                "balanced": int(i["balanced"]),
+                "userCollected": int(i["userCollected"]),
             }
             for i in response["Items"]
         ]
@@ -240,16 +222,19 @@ def get_all_user_orders(ownerID): # get all orders of a certain user
         return 0
 
 
-def get_user(primaryKey: str): # get a certain user by its id
+def get_user(primaryKey: str):  # get a certain user by its id
     res = BALANCE.get_item(Key={"ownerID": primaryKey})
     if not "Item" in res:
         return None
     return {
-        "balance": int(res['Item']['balance']),
-        "ownerID": str(res['Item']['ownerID'])
+        "balance": int(res["Item"]["balance"]),
+        "ownerID": str(res["Item"]["ownerID"]),
     }
 
-def get_uncollected_user_orders(ownerID): # get all orders that have not been fetched yet by the api
+
+def get_uncollected_user_orders(
+    ownerID,
+):  # get all orders that have not been fetched yet by the api
     response = TABLE.query(
         IndexName="ownerID-userCollected-index",
         KeyConditionExpression=Key("ownerID").eq(ownerID) & Key("userCollected").eq(0),
@@ -261,8 +246,8 @@ def get_uncollected_user_orders(ownerID): # get all orders that have not been fe
                 "price": float(i["price"]),
                 "quantity": float(i["quantity"]),
                 "status": int(i["status"]),
-                "balanced": int(i['balanced']),
-                "userCollected": int(i['userCollected']),
+                "balanced": int(i["balanced"]),
+                "userCollected": int(i["userCollected"]),
             }
             for i in response["Items"]
         ]
@@ -274,8 +259,7 @@ def get_uncollected_user_orders(ownerID): # get all orders that have not been fe
 def get_unbalanced_and_matched_orders():  # get all unbalanced and matched orders (settled orders that do not have their balance added to the user balances yet)
     response = TABLE.query(
         IndexName="balanced-status-index",
-        KeyConditionExpression=Key("balanced").eq(0)
-        & Key("status").eq(0), 
+        KeyConditionExpression=Key("balanced").eq(0) & Key("status").eq(0),
     )
     if "Items" in response:
         res = [
@@ -284,8 +268,8 @@ def get_unbalanced_and_matched_orders():  # get all unbalanced and matched order
                 "price": float(i["price"]),
                 "quantity": float(i["quantity"]),
                 "status": int(i["status"]),
-                "balanced": int(i['balanced']),
-                "userCollected": int(i['userCollected']),
+                "balanced": int(i["balanced"]),
+                "userCollected": int(i["userCollected"]),
             }
             for i in response["Items"]
         ]
@@ -293,7 +277,10 @@ def get_unbalanced_and_matched_orders():  # get all unbalanced and matched order
     else:
         return 0
 
-def delete_order(orderID, sortKey): # delete a certain order from the db. Only if not settled yet
+
+def delete_order(
+    orderID, sortKey
+):  # delete a certain order from the db. Only if not settled yet
     TABLE.delete_item(
         TableName="orders",
         Key={"orderID": orderID, "side": sortKey},
@@ -301,9 +288,8 @@ def delete_order(orderID, sortKey): # delete a certain order from the db. Only i
     )
 
 
-def get_order(orderID): # Get a single order by orderID
-    response = TABLE.query(
-        KeyConditionExpression=Key("orderID").eq(orderID))
+def get_order(orderID):  # Get a single order by orderID
+    response = TABLE.query(KeyConditionExpression=Key("orderID").eq(orderID))
     if "Items" in response:
         res = [
             {
@@ -311,8 +297,8 @@ def get_order(orderID): # Get a single order by orderID
                 "price": float(i["price"]),
                 "quantity": float(i["quantity"]),
                 "status": int(i["status"]),
-                "balanced": int(i['balanced']),
-                "userCollected": int(i['userCollected']),
+                "balanced": int(i["balanced"]),
+                "userCollected": int(i["userCollected"]),
             }
             for i in response["Items"]
         ]
@@ -320,7 +306,8 @@ def get_order(orderID): # Get a single order by orderID
     else:
         return 0
 
-def get_all_unmatched_orders(): # Get all orders that are still unsetteled/open
+
+def get_all_unmatched_orders():  # Get all orders that are still unsetteled/open
     response = TABLE.query(
         IndexName="status-index",
         KeyConditionExpression=Key("status").eq(0),
@@ -332,23 +319,32 @@ def get_all_unmatched_orders(): # Get all orders that are still unsetteled/open
                 "price": float(i["price"]),
                 "quantity": float(i["quantity"]),
                 "status": int(i["status"]),
-                "balanced": int(i['balanced']),
-                "userCollected": int(i['userCollected']),
+                "balanced": int(i["balanced"]),
+                "userCollected": int(i["userCollected"]),
             }
             for i in response["Items"]
         ]
         return res
     else:
         return 0
-        
-def generateUID(): # generate a 
+
+
+def generateUID():  # generate a
     random.shuffle
     return "".join(
         random.choice(string.ascii_uppercase + string.digits) for _ in range(12)
     )
 
 
-def matching(in_order): # Matching algorithm. Input = Buy or Sell orders
+def makeBatchPutRequests(
+    requests,
+):  # Batch all put requests for the matching algorithm to optimise for speed
+    with TABLE.batch_writer() as batch:
+        for item in requests:
+            batch.put_item(Item=item)
+
+
+def matching(in_order):  # Matching algorithm. Input = Buy or Sell orders
     in_order["orderID"] = generateUID()
     in_isBuyOrder = True if in_order["side"] == "buy" else False
 
@@ -555,15 +551,37 @@ def matching(in_order): # Matching algorithm. Input = Buy or Sell orders
 
     balance()
 
-def makeBatchPutRequests(requests): # Batch all put requests for the matching algorithm to optimise for speed
-    with TABLE.batch_writer() as batch:
-        for item in requests:
-            batch.put_item(Item=item)
+
+def balance():  # calculate and attribute outstanding balances of users
+    newUserBalance = {}
+    orders = get_unbalanced_and_matched_orders()
+    print(orders)
+    for order in orders:
+        update_order_balanced(
+            order["orderID"], order["side"]
+        )  # set for all orders "balanced" to 1
+        if order["ownerID"] in newUserBalance:
+            if order["side"] == "buy":
+                newUserBalance[order["ownerID"]] -= order["price"] * order["quantity"]
+            else:
+                newUserBalance[order["ownerID"]] += order["price"] * order["quantity"]
+        else:
+            if order["side"] == "buy":
+                newUserBalance[order["ownerID"]] = -order["price"] * order["quantity"]
+            else:
+                newUserBalance[order["ownerID"]] = order["price"] * order["quantity"]
+
+    for user in newUserBalance:  # update all users
+        currentUser = get_user(user)
+        if currentUser:
+            currentBalance = currentUser["balance"]
+        else:
+            currentBalance = 100
+        update_user_balance(user, newUserBalance[user] + currentBalance)
 
 
-
-
-def reset(): # delete all items in the DB
+# FUNCTIONS FOR TESTING
+def reset():  # delete all items in the DB
     db = read_db()
     for item in db:
         print(item["orderID"], type(item["orderID"]))
@@ -571,21 +589,22 @@ def reset(): # delete all items in the DB
             TableName="orders", Key={"orderID": item["orderID"], "side": item["side"]}
         )
 
-def init_db(obj): # create Items for the unit tests 
+
+def init_db(obj):  # create Items for the unit tests
     for o in obj:
         TABLE.put_item(Item=o)
 
 
-def read_db(): # Read the whole table for the unit tests
+def read_db():  # Read the whole table for the unit tests
     item_retrieved_from_db = TABLE.scan()["Items"]
     return item_retrieved_from_db
+
 
 # CREATE all necessary users DB tables
 def create_users_table(dynamodb):
     table = dynamodb.create_table(
         TableName="users",
-        KeySchema=[
-            {"AttributeName": "ownerID", "KeyType": "HASH"}        ],
+        KeySchema=[{"AttributeName": "ownerID", "KeyType": "HASH"}],
         AttributeDefinitions=[
             {"AttributeName": "ownerID", "AttributeType": "S"},
         ],
@@ -593,6 +612,7 @@ def create_users_table(dynamodb):
     )
     table.wait_until_exists()
     return table
+
 
 def create_orders_table(dynamodb):
     table = dynamodb.create_table(
