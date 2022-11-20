@@ -1,6 +1,5 @@
 import json
 import boto3
-import os
 from boto3.dynamodb.conditions import Key
 import botocore
 import random
@@ -69,7 +68,7 @@ def lambda_handler(event, context):
     
     if requestPath == "/order":
         order = event["body"]
-        if event["httpMethod"] == "POST":
+        if event["httpMethod"] == "POST" :
             if order["side"] == "buy" or order["side"] == "sell":
                 matching(order)
                 return SUCCESS
@@ -290,8 +289,9 @@ def get_order(orderID):
 def get_all_unmatched_orders():
     response = TABLE.query(
         IndexName="status-index",
-        KeyConditionExpression=Key("status").eq(1),
+        KeyConditionExpression=Key("status").eq(0),
     )
+    print(response)
     if "Items" in response:
         res = [
             {
