@@ -159,7 +159,7 @@ def balance():
         else:
             currentBalance = 100
         update_user_balance(
-            user["ownerID"], newUserBalance[user["ownerID"]] + currentBalance
+            user["ownerID"], newUserBalance[user] + currentBalance
         )
 
 
@@ -671,3 +671,5 @@ def create_orders_table(dynamodb):
 #             }
 #             # print(order)
 #             writer.put_item(Item=order)
+
+balance()
