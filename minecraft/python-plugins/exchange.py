@@ -215,7 +215,7 @@ def collect_order(order_id):
         "orderID": order_id
     })
     print(query_params)
-    status, response = http_get(api_base_url + 'query?' + query_params)
+    status, response = http_get(api_base_url + 'order?' + query_params)
     print(response)
     if status != 200:
         return None
