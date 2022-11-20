@@ -329,7 +329,7 @@ def get_all_unmatched_orders():  # Get all orders that are still unsetteled/open
         return 0
 
 
-def generateUID():  # generate a
+def generateUID():  # generate a unique UUID for the user
     random.shuffle
     return "".join(
         random.choice(string.ascii_uppercase + string.digits) for _ in range(12)
