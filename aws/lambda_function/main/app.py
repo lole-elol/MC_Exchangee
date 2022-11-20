@@ -166,7 +166,7 @@ def balance():
 def update_order_balanced(orderID, side):
     TABLE.update_item(
         Key={
-            "ownerID": orderID,
+            "orderID": orderID,
             "side": side,
         },
         UpdateExpression="SET balanced = :b",
@@ -354,7 +354,6 @@ def get_order(orderID):
     else:
         return 0
 
-# print(get_order('GT4XZQ42W2LL'))
 
 def get_all_unmatched_orders():
     response = TABLE.query(
