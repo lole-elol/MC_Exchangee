@@ -37,6 +37,11 @@ FAILURE = {"statusCode": 400,
 def success(order):
     return {"statusCode": 200, "body": json.dumps(order)}
     
+# def optionsExist(actualParams,requiredParams):
+#     if all(actualParams in requiredParams):
+#         return True
+#     else:
+#         return False
 
 def lambda_handler(event, context):
     requestPath = event['path'].split('/hackatum-BloombergBackend-1znJQelc3f38')[-1]
@@ -44,11 +49,14 @@ def lambda_handler(event, context):
 
     # Technically better via TryExcept but I can't remember the exact Error
     # event["body"] = json.loads(event["body"]) if event['body'] is not None else None
+    if event['body']:
+        event["body"] = json.loads(event["body"]) if type(event["body"]) is str else event["body"]
     
     if requestPath == "/order":
+        order = event["body"]
         if event["httpMethod"] == "POST":
-            if event["body"]["side"] == "buy" or event["body"]["side"] == "sell":
-                matching(event['body'])
+            if order["side"] == "buy" or order["side"] == "sell":
+                matching(order)
                 return SUCCESS
                  
 
@@ -62,7 +70,6 @@ def lambda_handler(event, context):
                 # if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
                 return FAILURE_DEL
                 
-                
         elif event["httpMethod"] == "GET": # when order is return set collected field True
             order = event["body"]
             if to_ret := get_order(orderID=order['orderID']):
@@ -70,7 +77,6 @@ def lambda_handler(event, context):
             else:
                 return FAILURE
         
-
     elif requestPath == "/orderList":  # Order book of open orders filtzer by status
         if event["httpMethod"] == "GET":
             if to_ret := get_all_unmatched_orders():
@@ -80,7 +86,8 @@ def lambda_handler(event, context):
 
     elif requestPath == "/summary":  # Orderbook of user filzer by owner id
         if event["httpMethod"] == "GET":
-            if to_ret := get_all_user_orders(event['ownerID']):
+            order = event["body"]
+            if to_ret := get_all_user_orders(order['ownerID']):
                 return success(to_ret)
             else:
                 return FAILURE
@@ -97,7 +104,7 @@ def lambda_handler(event, context):
     elif requestPath == "/balance":
         if event["httpMethod"] == "GET":
             user = event["body"]
-            if to_ret := get_user(user[""]):
+            if to_ret := get_user(user["ownerID"]):
                 return success(to_ret)
             else:
                 return FAILURE
@@ -229,7 +236,7 @@ def get_all_unmatched_orders():
         res = [{**i,'price':float(i['price']),'quantity':float(i['quantity']),'status':int(i['status'])} for i in response['Items']]
         return res
     else:
-        return 0
+        return []
         
 def generateUID():
     random.shuffle
@@ -471,3 +478,58 @@ def init_db(obj):
 def read_db():
     item_retrieved_from_db = TABLE.scan()["Items"]
     return item_retrieved_from_db
+
+
+
+def create_users_table(dynamodb):
+    table = dynamodb.create_table(
+        TableName="users",
+        KeySchema=[
+            {"AttributeName": "ownerID", "KeyType": "HASH"}        ],
+        AttributeDefinitions=[
+            {"AttributeName": "ownerID", "AttributeType": "S"},
+        ],
+        BillingMode="PAY_PER_REQUEST",
+    )
+    table.wait_until_exists()
+    return table
+
+def create_orders_table(dynamodb):
+    table = dynamodb.create_table(
+        TableName="orders",
+        KeySchema=[
+            {"AttributeName": "orderID", "KeyType": "HASH"},
+            {"AttributeName": "side", "KeyType": "RANGE"},
+        ],
+        AttributeDefinitions=[
+            {"AttributeName": "key2", "AttributeType": "S"},
+            {"AttributeName": "key2", "AttributeType": "S"},  # N = Number
+        ],
+        BillingMode="PAY_PER_REQUEST",
+    )
+    table.wait_until_exists()
+    return table
+
+# def generateTestData():
+#     with table.batch_writer() as writer:
+#         for i in range(2000):
+#             order = {
+#                 "orderID": generateUID,
+#                 "uid": generateUID,
+#                 "side": random.choice(
+#                     [
+#                         "rock",
+#                         "stone",
+#                         "dirt",
+#                         "gold",
+#                         "diamond",
+#                     ]
+#                 ),
+#                 "type": random.choice(["BUY", "SELL"]),
+#                 "quantity": random.choice(range(1, 100)),
+#                 "price": Deci(str(random.uniform(10.5, 75.5))),
+#                 'balanced' : 0,
+#                 'collected' : 0
+#             }
+#             # print(order)
+#             writer.put_item(Item=order)
