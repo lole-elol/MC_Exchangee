@@ -1,7 +1,6 @@
 import json
 import boto3
 from boto3.dynamodb.conditions import Key
-import botocore
 import random
 import string
 
@@ -253,20 +252,36 @@ def get_all_user_orders(ownerID):
     else:
         return 0
 
+# PoC dataclass for users
+# @dataclass
+# class User():
+#     ownerID: str
+#     balance: int
 
-def get_user(primaryKey):
+#     @staticmethod
+#     def get_from_database(ownerID: str) -> "User" | None:
+#         """ 
+#             Get the user with the given ownerID from the database
+#             May return None if there's no user with that ownerID
+#         """
+#         res = BALANCE.get_item(Key={ "ownerID": ownerID })
+#         if not "Item" in res:
+#             return None
+        
+#         # "balance": int(res['Item']['balance']),
+#         # "ownerID": str(res['Item']['ownerID'])
+#         balance = int(res['Item']['balance'])
+#         ownerID = str(res['Item']['ownerID'])
+#         return User(ownerID, balance)
+
+def get_user(primaryKey: str):
     res = BALANCE.get_item(Key={"ownerID": primaryKey})
-    if "Item" in res:
-        res = [{
-                'ownerID': i['ownerID'],
-                "balance": float(i["balance"]),
-            }
-            for i in res["Item"]
-        ]
-        return res
-    else:
-        return 0
-
+    if not "Item" in res:
+        return None
+    return {
+        "balance": int(res['Item']['balance']),
+        "ownerID": str(res['Item']['ownerID'])
+    }
 
 def get_uncollected_user_orders(ownerID):
     response = TABLE.query(
