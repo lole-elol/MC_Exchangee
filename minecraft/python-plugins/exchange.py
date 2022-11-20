@@ -12,11 +12,14 @@ from org.bukkit.inventory import ItemStack
 from org.bukkit import ChatColor, Material
 import urllib2
 import json
-import random
 from datetime import date
 import math
+import urllib
 
 api_base_url = "https://nxr9qbf1zf.execute-api.eu-central-1.amazonaws.com/default/hackatum-BloombergBackend-1znJQelc3f38/"
+
+""" Constants """
+order_display_header = ['Type', 'Name', 'Price', 'Amount', 'Issuer']
 
 """ Helper functions """
 
@@ -44,14 +47,14 @@ def pad_string_right(text, n_chars):
     npad = n_chars - len(text)
     return text + npad * " "
 
-
 def get_column_sizes(data):
     col_sz = None
     for row in data:
         if col_sz is None:
             col_sz = [ len(str(e)) for e in row ]
         else:
-            col_sz = [ max(len(str(e)), col_sz[i]) for i, e in enumerate(row) ]
+            for i, e in enumerate(row):
+                col_sz[i] = max(len(str(e)), col_sz[i])
 
     return col_sz
 
@@ -104,36 +107,13 @@ def print_exchange_help(player_name, display_title=True):
         colored_text("orders", [ ChatColor.YELLOW ]),
     ))
 
-
-usernames = [
-    'Intel4004',
-    'Someone3lse',
-    'Hackerman',
-    'RonaldTheDuck'
-]
-
-item_names = [
-    'Dirt',
-    'Gold Block',
-    'Hay Bale',
-    'Chicken',
-    'Nuggets'
-]
-
-order_display_header = ['Type', 'Name', 'Price', 'Issuer']
-def random_order():
-    type = 'BUY ' if random.random() > 0.5 else 'SELL'
-    user_name = usernames[int(random.random() * len(usernames))]
-    cost = int(400 + 1000 * random.random())
-    item_name = item_names[int(random.random() * len(item_names))]
-    return [ type, item_name, cost, user_name]
-
 def parse_order(ofa):
     type = 'BUY' if ofa['side'] == 'buy' else 'SELL'
-    user_name = ofa['ownerID'] if ofa.get('ownerID') is not None else '---'
+    user_name = str(ofa['ownerID']) if ofa.get('ownerID') is not None else '---'
     price = int(ofa['price'])
     item_name = str(ofa['type'])
-    return [ type, item_name, price, user_name]
+    amount = int(ofa['quantity'])
+    return [ type, item_name, price, amount, user_name]
 
 
 """ API Module """
@@ -164,8 +144,17 @@ def http_post(endpoint, body):
     return status, data
 
 def get_balance(player_name):
-    status, response = http_get('http://demo1945772.mockable.io/balance')
-    return json.loads(response)['balance'] if status == 200 else None
+    
+    body = json.dumps({
+        "ownerID": player_name
+    })
+    status, response = http_post(api_base_url + "balance", body)
+
+    # Handle error conditions
+    if status != 200:
+        return None
+
+    return json.loads(response)['balance']
 
 def get_orders(search = None, page=0):
 
@@ -179,13 +168,11 @@ def get_orders(search = None, page=0):
         in json.loads(body)
     ]
 
-    filtered_orders = [
-        # Convert all elements to strings, required for the column formatting
-        [str(e) for e in order] for order 
-        in all_open_orders
-        # Apply search
-        if search.lower() in order[1]
-    ]
+    filtered_orders = []
+    for order in all_open_orders:
+        if search.lower() in order[1].lower():
+            filtered_orders.append(order)
+    
     n_pages = int(math.ceil(len(filtered_orders) / 8))
     current_page = min(page, n_pages)
 
@@ -200,7 +187,9 @@ def create_sell_order(price, item_name, quantity, player_name):
         "quantity": quantity,
         "status": 0,
         "type": item_name,
-        "ownerID": player_name
+        "ownerID": player_name,
+        "balanced": 0,
+        "userCollected": 0
     })
     status, _ = http_post(api_base_url + "order", body)
     return status == 200
@@ -214,20 +203,41 @@ def create_buy_order(price, item_name, quantity, player_name):
         "quantity": quantity,
         "status": 0,
         "type": item_name,
-        "ownerID": player_name
+        "ownerID": player_name,
+        "balanced": 0,
+        "userCollected": 0
     })
     status, _ = http_post(api_base_url + "order", body)
     return status == 200
 
 def get_updates(player_name):
-    n_sold = 10
-    sold_profit = 1000
-    bought = [
-        { "id": 0,  "name": 'Gold Block', "amount": 100 },
-        { "id": 1, "name": 'Dirt', "amount": 1024 },
-        { "id": 2, "name": 'Dirt', "amount": 1024 },
-        { "id": 3, "name": 'Dirt', "amount": 1024 }
-    ]
+    query_params = urllib.urlencode({
+        "ownerID": player_name
+    })
+    print(query_params)
+    status, response = http_get(api_base_url + 'poll?' + query_params)
+
+    # Quick-exit when something wonky happened
+    if status != 200:
+        return None
+
+    bought = []
+    n_sold = 0
+    sold_profit = 0
+
+    orders = json.loads(response)
+    for order in orders:
+        # Status 0 -> unfullfilled
+        if order['status'] != 0:
+            if order['side'] == 'sell':
+                n_sold += 1
+                sold_profit += int(order['quantity']) * int(order['price'])
+            else:
+                bought.append({
+                    "id": order['id'],
+                    "name": order['type'],
+                    "amount": order['quantity']
+                })
     return n_sold, sold_profit, bought
 
 def retrieve_by_id(player_name, order_id):
@@ -480,7 +490,7 @@ def handle_orderbook(player_name, args):
     # Data
     for order in orders:
         p.sendMessage(separator.join([
-            pad_string_right(h, column_sizes[i]) for i, h in enumerate(order)
+            pad_string_right(h, column_sizes[i] + 1) for i, h in enumerate(order)
         ]))
     # Footer?
     page_string = "Page {}/{}".format(page + 1, total_pages + 1)
@@ -508,28 +518,42 @@ def handle_update(player_name, args):
         return
 
     # Check if there's any updates for the user:
-    n_sold, sell_profit, bought = get_updates(player_name)
+    update = get_updates(player_name)
+
+    # Handle Server errors
+    if update is None:
+        p.sendMessage(
+            colored_text("SERVER ERROR", [ ChatColor.RED, ChatColor.BOLD ])
+        )
+        p.sendMessage(
+            colored_text("Could not get updates, something went wrong with the server, please try again, later.", [ ChatColor.RED, ChatColor.ITALIC ])
+        )
+        return 
     
-    # Display it to the user
+    n_sold, sell_profit, bought = update
+    
+    # Selling Stats
     p.sendMessage(
-        "Over the last 24H, you have sold {} items, for a total profit of {}".format(
+        "So far you have sold {} items, for a total profit of {}".format(
             n_sold,
             colored_text("{} $".format(sell_profit), [ ChatColor.GOLD ])
         )
     )
-    p.sendMessage(
-        "You also have {} item's you've bought but not yet collected:".format(len(bought))
-    )
 
-    p.sendMessage(
-        "{} | {} | {}".format(
-            colored_text(pad_and_center_string("ID", 20), [ ChatColor.BOLD ]),
-            colored_text(pad_and_center_string("Name", 28), [ ChatColor.BOLD ]),
-            colored_text(pad_and_center_string("Amount", 6), [ ChatColor.BOLD ]),
-        )
-    )
-    for pending_item in bought:
+    # Bought but not retreived items
+    if len(bought) > 0:
         p.sendMessage(
+            "You also have {} item's you've bought but not yet collected:".format(len(bought))
+        )
+        p.sendMessage(
+            "{} | {} | {}".format(
+                colored_text(pad_and_center_string("ID", 20), [ ChatColor.BOLD ]),
+                colored_text(pad_and_center_string("Name", 28), [ ChatColor.BOLD ]),
+                colored_text(pad_and_center_string("Amount", 6), [ ChatColor.BOLD ]),
+            )
+        )
+        for pending_item in bought:
+            p.sendMessage(
         "{} | {} | {}".format(
             colored_text(pad_string_right(pending_item['id'], 20), [ ChatColor.BOLD ]),
             colored_text(pad_and_center_string(pending_item['name'], 28), [ ChatColor.BOLD ]),
